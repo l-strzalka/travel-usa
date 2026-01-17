@@ -1,0 +1,14 @@
+.carousel-item img {
+           height: 490px;
+           object-fit: cover;   
+          }
+
+.carousel-inner {
+  display: flex;
+  gap: 3px;
+  transition: transform 1s cubic-bezier(0.97,0,0.68,1);
+}
+
+.carousel-inner.no-transition {
+  transition: none;
+}
