@@ -1,0 +1,21 @@
+.panoramic__inner {
+    display: flex;
+    gap: 30px;
+    overflow-x: scroll;
+    cursor: grab; /* Kursor "rączki" */
+    user-select: none; /* Zapobiega zaznaczaniu tekstu/obrazków podczas przeciągania */
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+}
+
+/* Styl, gdy trzymamy myszkę */
+.panoramic__inner.active {
+    cursor: grabbing; /* Kursor "zacisniętej pięści" */
+    scroll-snap-type: none; /* Wyłączamy przyciąganie, by ruch był płynny */
+    scroll-behavior: auto; /* Wyłączamy smooth scroll, by reagował natychmiast na mysz */
+}
+
+/* Zapobieganie przeciąganiu samych plików obrazów przez przeglądarkę */
+.panoramic__img {
+    pointer-events: none;
+}

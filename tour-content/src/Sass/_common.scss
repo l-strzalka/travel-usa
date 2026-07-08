@@ -1,0 +1,14 @@
+body{
+    background: $secondary;
+    color: $main-typography;
+    a {
+    color: $navbar-text;
+    display: flex;
+    }
+    a:hover{
+            color: $navbar-actice-text;
+        }
+
+}
+
+
