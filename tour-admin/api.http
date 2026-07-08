@@ -1,0 +1,89 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0cmF2ZWx1c2EucGwiLCJzdGF0dXMiOiJBRE1JTiIsImlhdCI6MTc4MjQ5OTQyOSwiZXhwIjoxNzgyNTg1ODI5fQ.iIBqTsAGp6ePR1tutpcxyCmjvKNMN3dc9_WmbriuAPU
+
+### Rejestracja nowego administratora
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "Mateusz@travelusa.pl",
+  "password": "1qwertyu",
+  "name": "Mateusz",
+  "status": "USER"
+}
+
+### Logowanie administratora
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@travelusa.pl",
+  "password": "1qwerty"
+}
+
+### Pobieranie wszystkich wycieczek
+GET http://localhost:3000/products
+Authorization: Bearer {{token}}
+
+###Pobieranie wycieczki po nazwie
+GET http://localhost:3000/products/search/name?name=Miami%2015%20dni
+
+###
+### Pobieranie konkretnej wycieczki (ID: 1)
+GET http://localhost:3000/products/1
+
+###
+
+### Dodawanie nowej wycieczki
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "name": "Miami 5 dni",
+  "price": 8999,
+  "description": "Słoneczna Floryda",
+  "latitude": 25.7617,
+  "longitude": -80.1918
+}
+
+###
+
+### Edycja wycieczki (ID: 1)
+PATCH http://localhost:3000/products/1
+Content-Type: application/json
+
+{
+  "name": "Miami 15 dni",
+  "price": 15999
+}
+
+###
+
+### Usuwanie wycieczki (ID: 2)
+DELETE http://localhost:3000/products/2
+
+### Dodawanie nowej wycieczki
+POST http://localhost:3000/products
+Content-Type: application/json
+
+{
+  "name": "Wielki Kanion Kolorado",
+  "price": 8999,
+  "description": "Niezapomniana wyprawa helikopterem i trekking po jednym z najpiękniejszych cudów natury w USA.",
+  "location": "Arizona, USA",
+  "imageUrl": "https://images.unsplash.com/photo-1615551043360-33de8b5f410c",
+  "latitude": 36.0544,
+  "longitude": -112.1401
+}
+
+### Dodawanie nowej wycieczki (ZALOGOWANY ADMIN)
+POST http://localhost:3000/products
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0cmF2ZWx1c2EucGwiLCJzdGF0dXMiOiJBRE1JTiIsImlhdCI6MTc4MjQ5MTEwMiwiZXhwIjoxNzgyNTc3NTAyfQ.ZBDluOxdrZ_jnGMWMV8cOH54zcwtbcQd7d0BgdyJ4CU
+
+{
+  "name": "Las Vegas 4 dni",
+  "price": 7500,
+  "description": "Kasyna i zabawa",
+  "latitude": 36.1716,
+  "longitude": -115.1398
+}
