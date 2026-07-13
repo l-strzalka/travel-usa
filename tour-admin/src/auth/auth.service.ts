@@ -27,10 +27,10 @@ export class AuthService {
       );
     }
 
-    // Szyfruje hasło robi hash
+    // bcrypt szyfruje hasło robi hash
     const hashedPassword = await bcrypt.hash(body.password, 10);
 
-    // Zapisuje użytkownika w bazie MySQL
+    // zapisuje użytkownika w bazie MySQL
     const newUser = await this.usersService.create({
       email: body.email,
       password: hashedPassword,

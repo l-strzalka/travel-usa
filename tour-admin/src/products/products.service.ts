@@ -12,14 +12,31 @@ import { CreateProductsDto } from './dtos/create-products.dto';
 export class ProductService {
   constructor(private prisma: PrismaService) {}
 
-  async getAll(): Promise<Product[]> {
-    const products = await this.prisma.product.findMany();
-    console.log(products);
+  async getAll(query: {
+    _start?: number;
+    _end?: number;
+    _sort?: string;
+    _order?: 'asc' | 'desc';
+  }): Promise<{ data: Product[]; total: number }> {
+    const { _start, _end, _sort, _order } = query;
 
-    if (!products) {
-      throw new NotFoundException('Obecnie żaden produkt nie istnieje');
-    }
-    return products;
+    const skip = _start ? Number(_start) : undefined;
+    const take = _end && _start ? Number(_end) - Number(_start) : undefined;
+    const sortOrder: 'asc' | 'desc' =
+      _order?.toLowerCase() === 'desc' ? 'desc' : 'asc';
+    const orderBy = _sort ? { [_sort]: sortOrder } : { id: sortOrder };
+
+    // Wykonujemy zapytania równolegle, oszczędzając zasoby bazy danych
+    const [data, total] = await Promise.all([
+      this.prisma.product.findMany({
+        skip,
+        take,
+        orderBy,
+      }),
+      this.prisma.product.count(),
+    ]);
+
+    return { data, total };
   }
 
   async getByName(name: string): Promise<Product> {

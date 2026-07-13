@@ -9,7 +9,10 @@ import {
   HttpCode,
   Patch,
   UseGuards,
+  Res,
+  HttpStatus,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ProductService } from './products.service';
 import { CreateProductsDto } from './dtos/create-products.dto';
 import { EditProductDto } from './dtos/edit-product.dto';
@@ -22,8 +25,29 @@ export class ProductsController {
   //GET localhost:3000/products
   @UseGuards(AdminGuard)
   @Get()
-  async getProducts() {
-    return this.productsService.getAll();
+  async getProducts(
+    @Query()
+    query: {
+      _start?: string;
+      _end?: string;
+      _sort?: string;
+      _order?: 'asc' | 'desc';
+    },
+    @Res() res: Response,
+  ) {
+    const start = query._start ? parseInt(query._start, 10) : undefined;
+    const end = query._end ? parseInt(query._end, 10) : undefined;
+
+    const { data, total } = await this.productsService.getAll({
+      _start: start,
+      _end: end,
+      _sort: query._sort,
+      _order: query._order,
+    });
+
+    res.setHeader('X-Total-Count', total.toString());
+
+    return res.status(HttpStatus.OK).json(data);
   }
 
   //GET localhost:3000/products/1

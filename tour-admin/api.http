@@ -1,13 +1,13 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0cmF2ZWx1c2EucGwiLCJzdGF0dXMiOiJBRE1JTiIsImlhdCI6MTc4MjQ5OTQyOSwiZXhwIjoxNzgyNTg1ODI5fQ.iIBqTsAGp6ePR1tutpcxyCmjvKNMN3dc9_WmbriuAPU
+# @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0cmF2ZWx1c2EucGwiLCJzdGF0dXMiOiJBRE1JTiIsImlhdCI6MTc4MjQ5OTQyOSwiZXhwIjoxNzgyNTg1ODI5fQ.iIBqTsAGp6ePR1tutpcxyCmjvKNMN3dc9_WmbriuAPU
 
 ### Rejestracja nowego administratora
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-  "email": "Mateusz@travelusa.pl",
+  "email": "Andrzej@travelusa.pl",
   "password": "1qwertyu",
-  "name": "Mateusz",
+  "name": "Andrzej",
   "status": "USER"
 }
 

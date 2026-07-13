@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductsDto {
   @IsString({ message: 'Nazwa produktu musi być tekstem!' })
@@ -6,6 +7,7 @@ export class CreateProductsDto {
   name!: string;
 
   @IsNumber({}, { message: 'Cena musi być liczbą' })
+  @Type(() => Number)
   price!: number;
 
   @IsString({ message: 'Opis musi być tekstem' })
@@ -16,11 +18,16 @@ export class CreateProductsDto {
   imageUrl?: string;
 
   @IsOptional()
+  @IsString()
   location?: string;
 
-  @IsNumber()
+  @IsOptional()
+  @IsNumber({}, { message: 'Szerokość geograficzna musi być liczbą' })
+  @Type(() => Number)
   latitude!: number;
 
-  @IsNumber()
+  @IsOptional()
+  @IsNumber({}, { message: 'Długość geograficzna musi być liczbą' })
+  @Type(() => Number)
   longitude!: number;
 }

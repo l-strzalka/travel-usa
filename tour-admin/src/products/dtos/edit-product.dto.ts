@@ -1,4 +1,5 @@
 import { IsNumber, IsString, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class EditProductDto {
   @IsString({ message: 'Nazwa produktu musi być tekstem!' })
@@ -7,6 +8,7 @@ export class EditProductDto {
 
   @IsNumber({}, { message: 'Cena musi być liczbą' })
   @IsOptional()
+  @Type(() => Number)
   price?: number;
 
   @IsString({ message: 'Opis musi być tekstem' })
@@ -21,9 +23,11 @@ export class EditProductDto {
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   latitude?: number;
 
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   longitude?: number;
 }
