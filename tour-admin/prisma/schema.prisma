@@ -18,7 +18,7 @@ model User {
   password  String
   name      String?
   createdAt DateTime @default(now())
-  status    String 
+  status    String
 
   orders Order[]
   plans  PlannerItem[]
@@ -27,6 +27,7 @@ model User {
 model Product {
   id          Int      @id @default(autoincrement())
   name        String
+  slug        String   @unique
   description String   @db.Text
   price       Float
   imageUrl    String?

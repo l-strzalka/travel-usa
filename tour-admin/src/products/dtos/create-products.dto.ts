@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductsDto {
@@ -7,6 +13,9 @@ export class CreateProductsDto {
   name!: string;
 
   @IsNumber({}, { message: 'Cena musi być liczbą' })
+  @Min(0, {
+    message: 'Cena nie może być ujemna (musi wynosić co najmniej 0 PLN)',
+  })
   @Type(() => Number)
   price!: number;
 

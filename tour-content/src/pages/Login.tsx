@@ -1,3 +1,4 @@
+// tour-content/src/pages/Login.tsx
 import React, { useState } from "react";
 import { useLogin } from "@refinedev/core";
 import { 
@@ -12,7 +13,7 @@ import {
 } from "@mui/material";
 
 type LoginVariables = {
- email: string;
+  email: string;
   password: string;
 };
 
@@ -20,7 +21,7 @@ export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   
-  // Hook z Refine przekazuje wywołanie bezpośrednio do metody login() w naszym authProvider
+  // Hook z Refine przekazuje wywołanie bezpośrednio do metody login() w naszym authProvider[cite: 4]
   const { mutate: login, isLoading, error } = useLogin<LoginVariables>();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -35,10 +36,24 @@ export const Login: React.FC = () => {
       <Box sx={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center" }}>
         <Card variant="outlined" sx={{ width: "100%", padding: 2 }}>
           <CardContent>
-            <Typography component="h1" variant="h5" align="center" gutterBottom sx={{ fontWeight: "bold" }}>
+            {/* Poprawiony Typography z jawną asercją typu elementu */}
+            <Typography 
+              component={"h1" as React.ElementType} 
+              variant="h5" 
+              align="center" 
+              gutterBottom 
+              sx={{ fontWeight: "bold" }}
+            >
               Panel Logowania Biura
             </Typography>
-            <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
+            
+            <Typography 
+              component={"p" as React.ElementType}
+              variant="body2" 
+              color="textSecondary" 
+              align="center" 
+              sx={{ mb: 3 }}
+            >
               Zaloguj się na konto administratora, aby zarządzać ofertami USA.
             </Typography>
 

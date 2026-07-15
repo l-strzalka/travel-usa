@@ -1,4 +1,4 @@
-import cowboy from "../assets/cowboy-usa.jpeg"
+import cowboy from "../../assets/cowboy-usa.jpeg"
 import { Link } from "react-router-dom";
 
 export const Hero = () => (

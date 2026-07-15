@@ -1,6 +1,6 @@
 import './components/css/Carousel.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { CarouselItem } from '@/components/Carousel/components/CarouselItem';
+import { CarouselItem } from '@/features/components/Carousel/components/CarouselItem';
 import { images } from './components/images';
 import { CarouselControls } from './components/CarouselControls';
 

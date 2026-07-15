@@ -7,10 +7,44 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Product } from '@prisma/client';
 import { EditProductDto } from './dtos/edit-product.dto';
 import { CreateProductsDto } from './dtos/create-products.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class ProductService {
   constructor(private prisma: PrismaService) {}
+
+  private async generateUniqueSlug(
+    name: string,
+    currentId?: number,
+  ): Promise<string> {
+    const baseSlug = slugify(name, { lower: true, strict: true, locale: 'pl' });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      // Szukamy w bazie produktu o takim samym slugu
+      const existing = await this.prisma.product.findUnique({
+        where: { slug },
+      });
+
+      // Jeśli slug jest wolny LUB należy do aktualnie edytowanego produktu
+      if (!existing || existing.id === currentId) {
+        break;
+      }
+
+      // Jeśli istnieje kolizja, dodajemy licznik, np. "sloneczna-kalifornia-1"
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return slug;
+  }
+
+  async getBySlug(slug: string) {
+    return this.prisma.product.findUnique({
+      where: { slug },
+    });
+  }
 
   async getAll(query: {
     _start?: number;
@@ -69,8 +103,15 @@ export class ProductService {
   }
 
   async add(data: CreateProductsDto): Promise<Product> {
+    if (data.price < 0) {
+      throw new BadRequestException(
+        'Błąd krytyczny: Cena nie może być mniejsza niz 0',
+      );
+    }
+    // wygeneruj unikalny slug przed zapisem (Prisma wymaga pola slug)
+    const slug = await this.generateUniqueSlug(data.name);
     return this.prisma.product.create({
-      data,
+      data: { ...data, slug },
     });
   }
 
@@ -85,9 +126,15 @@ export class ProductService {
   async edit(id: number, data: EditProductDto): Promise<Product> {
     await this.getById(id);
 
+    // jeśli zmieniona nazwa, zaktualizuj slug unikając kolizji
+    const updateData: EditProductDto & { slug?: string } = { ...data };
+    if (data.name) {
+      updateData.slug = await this.generateUniqueSlug(data.name, id);
+    }
+
     return this.prisma.product.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 }

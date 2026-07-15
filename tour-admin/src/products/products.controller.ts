@@ -11,6 +11,7 @@ import {
   UseGuards,
   Res,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { ProductService } from './products.service';
@@ -22,8 +23,7 @@ import { AdminGuard } from 'src/auth/guards/admin.guards';
 export class ProductsController {
   constructor(private productsService: ProductService) {}
 
-  //GET localhost:3000/products
-  @UseGuards(AdminGuard)
+  // GET localhost:3000/products
   @Get()
   async getProducts(
     @Query()
@@ -50,26 +50,47 @@ export class ProductsController {
     return res.status(HttpStatus.OK).json(data);
   }
 
-  //GET localhost:3000/products/1
-  @UseGuards(AdminGuard)
-  @Get('/:id')
-  async getProduct(@Param('id') id: string) {
-    return this.productsService.getById(+id);
-  }
-
+  // GET localhost:3000/products/search/name
+  // UWAGA: Ta ścieżka musi być wyżej niż /:idOrSlug!
   @Get('search/name')
   async getProductByName(@Query('name') name: string) {
     return this.productsService.getByName(name);
   }
 
-  //POST localhost:3000/products
+  // GET localhost:3000/products/1 LUB localhost:3000/products/kalifornia-trip
+  @Get('/:idOrSlug')
+  async getProductBySlug(@Param('idOrSlug') idOrSlug: string) {
+    const id = Number(idOrSlug);
+
+    // 1. Jeśli parametr jest liczbą, wyszukujemy po ID (np. dla panelu admina)
+    if (!isNaN(id)) {
+      const product = await this.productsService.getById(id);
+      if (!product) {
+        throw new NotFoundException(`Nie znaleziono wycieczki o ID: ${id}`);
+      }
+      return product;
+    }
+
+    // 2. Jeśli to tekst, wyszukujemy po unikalnym slugu (dla strony klienckiej)
+    const product = await this.productsService.getBySlug(idOrSlug);
+    if (!product) {
+      throw new NotFoundException(
+        `Nie znaleziono wycieczki o URL: ${idOrSlug}`,
+      );
+    }
+    return product;
+  }
+
+  // Zbędna metoda @Get('/:id') została usunięta!
+
+  // POST localhost:3000/products
   @UseGuards(AdminGuard)
   @Post()
   async addProduct(@Body() body: CreateProductsDto) {
     return this.productsService.add(body);
   }
 
-  //DELETE localhost:3000/products/1
+  // DELETE localhost:3000/products/1
   @UseGuards(AdminGuard)
   @Delete('/:id')
   @HttpCode(204)
@@ -77,7 +98,7 @@ export class ProductsController {
     return this.productsService.remove(+id);
   }
 
-  //PATCH localhost:3000/products/1
+  // PATCH localhost:3000/products/1
   @UseGuards(AdminGuard)
   @Patch(':id')
   async editProduct(@Body() body: EditProductDto, @Param('id') id: string) {

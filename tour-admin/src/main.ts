@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -13,7 +15,7 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: [process.env.FRONTEND_URL || 'http://localhost:5173'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     exposedHeaders: ['X-Total-Count'],
@@ -25,6 +27,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads', // Pliki będą dostępne pod adresem http://localhost:3000/uploads/...
+  });
 
   await app.listen(process.env.PORT ?? 3000);
 }

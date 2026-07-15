@@ -1,3 +1,4 @@
+
 import './App.scss';
 import './Sass/main.scss';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
@@ -18,35 +19,43 @@ import routerProvider, {
 } from '@refinedev/react-router-v6';
 import dataProvider from '@refinedev/simple-rest';
 import axios from 'axios';
+
 import { authProvider } from './authProvider';
 
 // Strony Klienckie
+import { PlacePage } from './pages/PlacePage';
 import { LandingPage } from './pages/LandingPage';
 import { ExplorePage } from './pages/ExplorePage';
-import { PlacePage } from './pages/PlacePage';
 import { PlannerPage } from './pages/PlannerPage';
 import { CheckoutPage } from './pages/CheckoutPage';
-import { Header } from './components/Header';
+import { Header } from './features/components/Header';
 import { Login } from './pages/Login';
-
 // Strony Administratora
 import {
   ProductList,
   ProductCreate,
   ProductEdit,
-  ProductShow,
 } from './admin-panel/resources/products';
 
-const API_URL = 'http://localhost:3000'; // Adres serwera NestJS
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
 
-// axios dołacza automatycznie token jwt
-axios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+// Axios dołącza automatycznie token JWT
+const axiosInstance = axios.create({
+  baseURL: API_URL,
 });
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('auth_token');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const theme = createTheme(RefineThemes.Blue);
 
@@ -54,14 +63,11 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {/* 
-        TUTAJ DOPISUJEMY: RefineSnackbarProvider musi być wyżej niż Refine, 
-        aby 'useSnackbar(...)' nie zwracało undefined w paczce @refinedev/mui!
-      */}
+
       <RefineSnackbarProvider>
         <DevtoolsProvider>
           <Refine
-            dataProvider={dataProvider(API_URL)}
+            dataProvider={dataProvider(API_URL, axiosInstance)}
             notificationProvider={notificationProvider}
             routerProvider={routerProvider}
             authProvider={authProvider}
@@ -83,7 +89,7 @@ function App() {
             }}
           >
             <Routes>
-              {/* SEKCJA KLIENCKA - Z dotychczasowym Headerem */}
+              {/* SEKCJA KLIENCKA - Publiczna, dostępna bez logowania */}
               <Route
                 element={
                   <>
@@ -94,33 +100,40 @@ function App() {
               >
                 <Route path='/' element={<LandingPage />} />
                 <Route path='/explore' element={<ExplorePage />} />
-                <Route path='/place/:id' element={<PlacePage />} />
+                
+                
+                <Route path='/:slug' element={<PlacePage />} />
+                
                 <Route path='/planner' element={<PlannerPage />} />
                 <Route path='/checkout' element={<CheckoutPage />} />
               </Route>
 
-              {/* STRONA LOGOWANIA*/}
+              {/* STRONA LOGOWANIA */}
               <Route
                 path='/login'
                 element={
-                  <Authenticated key="login-page" fallback={<Login />} v4Legacy={false}>
-                    {/* Jeśli użytkownik JEST zalogowany, wejście na /login przekieruje go do panelu */}
-                    <NavigateToResource resource="products" />
+                  <Authenticated
+                    key='login-page'
+                    fallback={<Login />}
+                    v4Legacy={false}
+                  >
+                    {/* Jeśli zalogowany wejdzie na /login, leci bezpośrednio do ofert */}
+                    <NavigateToResource resource='products' />
                   </Authenticated>
                 }
               />
 
-              {/* SEKCJA PANELU ADMINISTRATORA */}
+              {/* SEKCJA PANELU ADMINISTRATORA (Wymaga statusu ADMIN) */}
               <Route
                 path='/admin'
                 element={
-                  <Authenticated 
-                    key="admin-layout" 
-                    fallback={<Navigate to="/login" replace />}
+                  <Authenticated
+                    key='admin-layout'
+                    fallback={<Navigate to='/login' replace />}
                   >
-                  <ThemedLayoutV2>
-                    <Outlet />
-                  </ThemedLayoutV2>
+                    <ThemedLayoutV2>
+                      <Outlet />
+                    </ThemedLayoutV2>
                   </Authenticated>
                 }
               >
@@ -134,7 +147,6 @@ function App() {
                   <Route index element={<ProductList />} />
                   <Route path='create' element={<ProductCreate />} />
                   <Route path='edit/:id' element={<ProductEdit />} />
-                  <Route path='show/:id' element={<ProductShow />} />
                 </Route>
 
                 {/* Obsługa błędów 404 wewnątrz panelu */}
