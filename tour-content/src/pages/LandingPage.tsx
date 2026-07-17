@@ -1,4 +1,4 @@
-import '../sass/main.scss'
+import '../Sass/main.scss'
 // import Container from "@mui/material/Container"
 import { Hero } from "../features/components/Hero"
 import { RecommendedPlaces } from "../features/components/RecommendedPlaces"
