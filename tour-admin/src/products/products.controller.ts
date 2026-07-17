@@ -17,7 +17,7 @@ import type { Response } from 'express';
 import { ProductService } from './products.service';
 import { CreateProductsDto } from './dtos/create-products.dto';
 import { EditProductDto } from './dtos/edit-product.dto';
-import { AdminGuard } from 'src/auth/guards/admin.guards';
+import { AdminGuard } from '../auth/guards/admin.guards';
 
 @Controller('products')
 export class ProductsController {
