@@ -1,6 +1,6 @@
 
 import './app.scss';
-import './Sass/main.scss';
+import './sass/main.scss';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { Refine, Authenticated } from '@refinedev/core';
 import { DevtoolsProvider, DevtoolsPanel } from '@refinedev/devtools';
