@@ -1,5 +1,5 @@
 
-import './App.scss';
+import './app.scss';
 import './Sass/main.scss';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { Refine, Authenticated } from '@refinedev/core';
