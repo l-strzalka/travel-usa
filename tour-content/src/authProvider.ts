@@ -1,7 +1,7 @@
 import { AuthProvider } from "@refinedev/core";
+import { API_URL } from "./App";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000"; 
 
 export const authProvider: AuthProvider = {
   // Wywoływane podczas próby zalogowania

@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { API_URL } from '../../config';
 import { Product, UseFeaturedToursOptions } from '../components/ProductDisplay/types/products-types';
-
-const API_URL = 'http://localhost:3000';
 
 export const useFeaturedTours = (options: UseFeaturedToursOptions = {}) => {
   const limit = options.limit ?? 4;

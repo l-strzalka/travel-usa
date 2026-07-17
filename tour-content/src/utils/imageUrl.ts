@@ -1,4 +1,6 @@
-export const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../config';
+
+export const BACKEND_URL = API_URL;
 
 export const resolveImageUrl = (imageUrl?: string | null) => {
   if (!imageUrl) {

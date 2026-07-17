@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { useState } from 'react';
+import { API_URL } from '../../../config';
 import { LoginInputs } from './types';
 
 export const Login = () => {
@@ -19,7 +20,7 @@ export const Login = () => {
     setServerError('');
 
     try {
-      const response = await fetch('http://localhost:3000/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ import axios from 'axios';
 import { authProvider } from './authProvider';
 
 // Strony Klienckie
-import { PlacePage } from './pages/PlacePage';
+import { PlacePage } from './features/components/ProductDisplay/PlacePage';
 import { LandingPage } from './pages/LandingPage';
 import { ExplorePage } from './pages/ExplorePage';
 import { PlannerPage } from './pages/PlannerPage';
@@ -37,8 +37,9 @@ import {
   ProductEdit,
 } from './admin-panel/resources/products';
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';
+import { API_URL, FRONTEND_URL } from './config';
+
+export { API_URL, FRONTEND_URL };
 
 // Axios dołącza automatycznie token JWT
 const axiosInstance = axios.create({

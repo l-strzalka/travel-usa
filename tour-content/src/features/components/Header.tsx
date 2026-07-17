@@ -51,7 +51,7 @@ export const Header = () => {
                     </Toolbar>
 
                     <Typography variant={"h6"}>
-                        Dziki Zachód
+                        USA escape
                     </Typography>
 
                     <div id="menu-trl">

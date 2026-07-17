@@ -61,7 +61,8 @@ export class UploadController {
     }
 
     // Zwracamy pełny, gotowy adres URL do zapisu w bazie danych
-    const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
+    const apiBaseUrl = process.env.API_URL ?? 'http://localhost:3000';
+    const fileUrl = `${apiBaseUrl}/uploads/${file.filename}`;
     return {
       url: fileUrl,
       originalName: file.originalname,

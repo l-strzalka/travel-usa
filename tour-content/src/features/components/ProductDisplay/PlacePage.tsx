@@ -1,11 +1,12 @@
 // tour-content/src/pages/PlacePage.tsx
+import { API_URL } from '@/App';
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Product, CalculatorState } from '../features/components/ProductDisplay/types/products-types';
-import { PlacePageSkeleton } from '../features/components/ProductDisplay/ui/PlacePageSkeleton';
-import { resolveImageUrl } from '../utils/imageUrl';
+import { Product, CalculatorState } from './types/products-types';
+import { PlacePageSkeleton } from './ui/PlacePageSkeleton';
+import { resolveImageUrl } from '../../../utils/imageUrl';
 
 // Importy Material UI
 import {
@@ -30,9 +31,9 @@ import CalendarIcon from '@mui/icons-material/CalendarToday';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import XCircleIcon from '@mui/icons-material/Cancel';
 import CompassIcon from '@mui/icons-material/Explore';
-import usaBackground from '../assets/usa-background.png';
+import usaBackground from '../../../assets/usa-background.png';
 
-const API_URL = 'http://localhost:3000';
+
 
 export const PlacePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();

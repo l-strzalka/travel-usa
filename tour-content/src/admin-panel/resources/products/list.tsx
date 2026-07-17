@@ -4,6 +4,7 @@ import { Avatar, Box, Typography, IconButton, Tooltip } from '@mui/material';
 import LandscapeIcon from '@mui/icons-material/Landscape';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { FRONTEND_URL } from '../../../config';
 
 // Interfejs odzwierciedlający model Product z Prisma
 interface IProduct {
@@ -15,8 +16,6 @@ interface IProduct {
   imageUrl?: string | null;
   location?: string | null;
 }
-
-const FRONTEND_URL = 'http://localhost:5173';
 
 export const ProductList: React.FC = () => {
   // Pobieranie danych z backendu za pomocą mechanizmów Refine
