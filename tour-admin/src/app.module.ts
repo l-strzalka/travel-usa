@@ -1,3 +1,5 @@
+//tour-admin\src\app.module.ts
+
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';

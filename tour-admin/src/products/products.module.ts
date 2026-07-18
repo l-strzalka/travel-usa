@@ -1,3 +1,4 @@
+//tour-admin\src\products\products.module.ts
 import { Module } from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductService } from './products.service';
