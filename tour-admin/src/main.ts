@@ -1,4 +1,4 @@
-import 'tsconfig-paths/register';
+// import 'tsconfig-paths/register'; ten import nie jest potrzebny do produkcji na vercel
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -22,16 +22,21 @@ async function bootstrap() {
     exposedHeaders: ['X-Total-Count'],
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      transform: true,
-    }),
-  );
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true,
+  //     transform: true,
+  //   }),
+  // );
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads', // Pliki będą dostępne pod adresem http://localhost:3000/uploads/...
   });
 
+  if (process.env.VERCEL) {
+    await app.init();
+    return app.getHttpAdapter().getInstance();
+  }
+
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+export default bootstrap();
