@@ -18,7 +18,7 @@ import type { Response } from 'express';
 import { ProductService } from './products.service';
 import { CreateProductsDto } from './dtos/create-products.dto';
 import { EditProductDto } from './dtos/edit-product.dto';
-// import { AdminGuard } from '../auth/guards/admin.guards';
+import { AdminGuard } from '../auth/guards/admin.guards';
 
 @Controller('products')
 export class ProductsController {
@@ -82,15 +82,17 @@ export class ProductsController {
     return product;
   }
 
+  // Zbędna metoda @Get('/:id') została usunięta!
+
   // POST localhost:3000/products
-  // @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard)
   @Post()
   async addProduct(@Body() body: CreateProductsDto) {
     return this.productsService.add(body);
   }
 
   // DELETE localhost:3000/products/1
-  // @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard)
   @Delete('/:id')
   @HttpCode(204)
   async removeProduct(@Param('id') id: string) {
@@ -98,7 +100,7 @@ export class ProductsController {
   }
 
   // PATCH localhost:3000/products/1
-  // @UseGuards(AdminGuard)
+  @UseGuards(AdminGuard)
   @Patch(':id')
   async editProduct(@Body() body: EditProductDto, @Param('id') id: string) {
     return this.productsService.edit(+id, body);
