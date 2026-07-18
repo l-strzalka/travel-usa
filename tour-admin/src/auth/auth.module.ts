@@ -5,7 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
-import { ConfigService } from '@nestjs/config';
+// import { ConfigService } from '@nestjs/config';
 import { AdminGuard } from './guards/admin.guards';
 
 @Module({
@@ -26,7 +26,7 @@ import { AdminGuard } from './guards/admin.guards';
     //   }),
     // }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AdminGuard],
   controllers: [AuthController],
   exports: [AdminGuard],
 })
