@@ -42,4 +42,9 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-export default bootstrap();
+export default async (req: any, res: any) => {
+  const server = await bootstrap();
+  if (server) {
+    server(req, res);
+  }
+};
