@@ -22,6 +22,8 @@ model User {
 
   orders Order[]
   plans  PlannerItem[]
+
+  @@map("user")
 }
 
 model Product {
@@ -38,6 +40,8 @@ model Product {
 
   orderItems OrderItem[]
   planItems  PlannerItem[]
+
+  @@map("product")
 }
 
 model Order {
@@ -49,6 +53,8 @@ model Order {
 
   user  User        @relation(fields: [userId], references: [id])
   items OrderItem[]
+
+  @@map("order")
 }
 
 model OrderItem {
@@ -60,6 +66,8 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+
+  @@map("orderitem")
 }
 
 model PlannerItem {
@@ -70,4 +78,6 @@ model PlannerItem {
 
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+
+  @@map("planneritem")
 }
