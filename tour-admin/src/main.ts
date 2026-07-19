@@ -31,7 +31,7 @@ async function bootstrap() {
   //     transform: true,
   //   }),
   // );
-  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+  app.useStaticAssets(join(__dirname, '..', 'assets'), {
     prefix: '/uploads', // Pliki będą dostępne pod adresem http://localhost:3000/uploads/...
   });
 

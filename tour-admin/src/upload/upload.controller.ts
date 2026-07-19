@@ -9,7 +9,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
-import { extname } from 'path';
+import { extname, join } from 'path';
 
 
 // Zakładamy, że Twój Guard nazywa się JwtAuthGuard lub AdminGuard (zabezpieczamy sesję admina)
@@ -24,7 +24,7 @@ export class UploadController {
       storage: diskStorage({
         // Pliki trafią do folderu "uploads" w głównym katalogu tour-admin
         destination: (req, file, callback) => {
-          const uploadPath = './uploads';
+          const uploadPath = join(process.cwd(), 'src', 'assets');
           // Jeśli folder nie istnieje, utwórz go automatycznie na dysku
           if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
@@ -39,7 +39,6 @@ export class UploadController {
         },
       }),
       fileFilter: (req, file, callback) => {
-        // Akceptujemy wyłącznie obrazy w formatach JPEG, PNG, WEBP, GIF
         if (!file.mimetype.match(/\/(jpg|jpeg|png|webp|gif)$/)) {
           return callback(
             new BadRequestException(
