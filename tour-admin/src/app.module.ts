@@ -9,7 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 // import { UploadModule } from './upload/upload.module';
 
-// import { AdminModule } from './admin/admin.module';
+
 
 @Module({
   imports: [
