@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 async function bootstrap() {
@@ -31,12 +32,20 @@ async function bootstrap() {
   //     transform: true,
   //   }),
   // );
-  const staticAssetsPath = process.env.VERCEL
-    ? join(process.cwd(), 'src', 'assets')
-    : join(process.cwd(), 'dist', 'assets');
+  const candidateStaticPaths = [
+    join(process.cwd(), 'uploads'),
+    join(process.cwd(), 'src', 'assets'),
+  ];
+  const staticAssetsPath =
+    candidateStaticPaths.find((candidate) => existsSync(candidate)) ??
+    candidateStaticPaths[0];
+
+  if (!existsSync(staticAssetsPath)) {
+    mkdirSync(staticAssetsPath, { recursive: true });
+  }
 
   app.useStaticAssets(staticAssetsPath, {
-    prefix: '/uploads', // Pliki będą dostępne pod adresem /uploads/...
+    prefix: '/uploads',
   });
 
   if (process.env.VERCEL) {

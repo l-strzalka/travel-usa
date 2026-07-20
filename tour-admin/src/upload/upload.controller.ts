@@ -24,8 +24,7 @@ export class UploadController {
       storage: diskStorage({
         // Pliki trafią do folderu "uploads" w głównym katalogu tour-admin
         destination: (req, file, callback) => {
-          const uploadPath = join(process.cwd(), 'src', 'assets');
-          // Jeśli folder nie istnieje, utwórz go automatycznie na dysku
+          const uploadPath = join(process.cwd(), 'uploads');
           if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
           }
@@ -59,8 +58,11 @@ export class UploadController {
       throw new BadRequestException('Brak przesłanego pliku');
     }
 
-    // Zwracamy pełny, gotowy adres URL do zapisu w bazie danych
-    const apiBaseUrl = process.env.API_URL ?? 'http://localhost:3000';
+    const apiBaseUrl =
+      process.env.API_URL ??
+      (process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://localhost:3000');
     const fileUrl = `${apiBaseUrl}/uploads/${file.filename}`;
     return {
       url: fileUrl,
