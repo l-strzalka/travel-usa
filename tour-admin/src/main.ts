@@ -4,7 +4,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { existsSync, mkdirSync } from 'fs';
-import { tmpdir } from 'os';
 import { join } from 'path';
 
 async function bootstrap() {
@@ -18,37 +17,17 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || 'https://travel-usa-p2t7.vercel.app',
-      'http://localhost:5173',
-    ],
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['X-Total-Count'],
   });
 
-  // app.useGlobalPipes(
-  //   new ValidationPipe({
-  //     whitelist: true,
-  //     transform: true,
-  //   }),
-  // );
-  const candidateStaticPaths = process.env.VERCEL
-    ? [join(tmpdir(), 'uploads'), join(process.cwd(), 'src', 'assets')]
-    : [join(process.cwd(), 'uploads'), join(process.cwd(), 'src', 'assets')];
+  const staticAssetsPath = join(process.cwd(), 'uploads');
 
-  let staticAssetsPath = candidateStaticPaths[0];
-
-  for (const candidate of candidateStaticPaths) {
-    try {
-      if (!existsSync(candidate)) {
-        mkdirSync(candidate, { recursive: true });
-      }
-      staticAssetsPath = candidate;
-      break;
-    } catch {
-      continue;
-    }
+  if (!existsSync(staticAssetsPath)) {
+    mkdirSync(staticAssetsPath, { recursive: true });
   }
 
   app.useStaticAssets(staticAssetsPath, {
@@ -60,6 +39,12 @@ async function bootstrap() {
     return app.getHttpAdapter().getInstance();
   }
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+  await app.listen(port).catch((error) => {
+    if (error && (error as NodeJS.ErrnoException).code === 'EADDRINUSE') {
+      return app.listen(port + 1);
+    }
+    throw error;
+  });
 }
 export default bootstrap();
