@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { existsSync, mkdirSync } from 'fs';
+import { tmpdir } from 'os';
 import { join } from 'path';
 
 async function bootstrap() {
@@ -32,16 +33,22 @@ async function bootstrap() {
   //     transform: true,
   //   }),
   // );
-  const candidateStaticPaths = [
-    join(process.cwd(), 'uploads'),
-    join(process.cwd(), 'src', 'assets'),
-  ];
-  const staticAssetsPath =
-    candidateStaticPaths.find((candidate) => existsSync(candidate)) ??
-    candidateStaticPaths[0];
+  const candidateStaticPaths = process.env.VERCEL
+    ? [join(tmpdir(), 'uploads'), join(process.cwd(), 'src', 'assets')]
+    : [join(process.cwd(), 'uploads'), join(process.cwd(), 'src', 'assets')];
 
-  if (!existsSync(staticAssetsPath)) {
-    mkdirSync(staticAssetsPath, { recursive: true });
+  let staticAssetsPath = candidateStaticPaths[0];
+
+  for (const candidate of candidateStaticPaths) {
+    try {
+      if (!existsSync(candidate)) {
+        mkdirSync(candidate, { recursive: true });
+      }
+      staticAssetsPath = candidate;
+      break;
+    } catch {
+      continue;
+    }
   }
 
   app.useStaticAssets(staticAssetsPath, {

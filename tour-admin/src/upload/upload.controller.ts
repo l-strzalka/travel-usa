@@ -9,6 +9,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
+import { tmpdir } from 'os';
 import { extname, join } from 'path';
 
 
@@ -24,10 +25,24 @@ export class UploadController {
       storage: diskStorage({
         // Pliki trafią do folderu "uploads" w głównym katalogu tour-admin
         destination: (req, file, callback) => {
-          const uploadPath = join(process.cwd(), 'uploads');
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
+          const candidatePaths = process.env.VERCEL
+            ? [join(tmpdir(), 'uploads'), join(process.cwd(), 'src', 'assets')]
+            : [join(process.cwd(), 'uploads'), join(process.cwd(), 'src', 'assets')];
+
+          let uploadPath = candidatePaths[0];
+
+          for (const candidate of candidatePaths) {
+            try {
+              if (!fs.existsSync(candidate)) {
+                fs.mkdirSync(candidate, { recursive: true });
+              }
+              uploadPath = candidate;
+              break;
+            } catch {
+              continue;
+            }
           }
+
           callback(null, uploadPath);
         },
         filename: (req, file, callback) => {
