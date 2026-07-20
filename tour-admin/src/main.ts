@@ -3,8 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+// import { existsSync, mkdirSync } from 'fs';
+// import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -34,10 +34,10 @@ async function bootstrap() {
   //   prefix: '/uploads',
   // });
 
-  if (process.env.VERCEL) {
-    await app.init();
-    return app.getHttpAdapter().getInstance();
-  }
+  // if (process.env.VERCEL) {
+  //   await app.init();
+  //   return app.getHttpAdapter().getInstance();
+  // }
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port).catch((error) => {
