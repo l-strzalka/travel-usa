@@ -24,15 +24,15 @@ async function bootstrap() {
     exposedHeaders: ['X-Total-Count'],
   });
 
-  const staticAssetsPath = join(process.cwd(), 'uploads');
+  // const staticAssetsPath = join(process.cwd(), 'uploads');
 
-  if (!existsSync(staticAssetsPath)) {
-    mkdirSync(staticAssetsPath, { recursive: true });
-  }
+  // if (!existsSync(staticAssetsPath)) {
+  //   mkdirSync(staticAssetsPath, { recursive: true });
+  // }
 
-  app.useStaticAssets(staticAssetsPath, {
-    prefix: '/uploads',
-  });
+  // app.useStaticAssets(staticAssetsPath, {
+  //   prefix: '/uploads',
+  // });
 
   if (process.env.VERCEL) {
     await app.init();
