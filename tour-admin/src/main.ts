@@ -31,8 +31,12 @@ async function bootstrap() {
   //     transform: true,
   //   }),
   // );
-  app.useStaticAssets(join(__dirname, '..', 'assets'), {
-    prefix: '/uploads', // Pliki będą dostępne pod adresem http://localhost:3000/uploads/...
+  const staticAssetsPath = process.env.VERCEL
+    ? join(process.cwd(), 'src', 'assets')
+    : join(process.cwd(), 'dist', 'assets');
+
+  app.useStaticAssets(staticAssetsPath, {
+    prefix: '/uploads', // Pliki będą dostępne pod adresem /uploads/...
   });
 
   if (process.env.VERCEL) {
