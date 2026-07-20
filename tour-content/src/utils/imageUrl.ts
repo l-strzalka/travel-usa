@@ -1,3 +1,4 @@
+//C:\Users\regan\OneDrive\Pulpit\Projekty\TravelUSA\tour-content\src\utils\imageUrl.ts
 import { API_URL } from '../config';
 
 export const BACKEND_URL = API_URL;

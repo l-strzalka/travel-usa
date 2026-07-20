@@ -100,11 +100,8 @@ function App() {
                 }
               >
                 <Route path='/' element={<LandingPage />} />
-                <Route path='/explore' element={<ExplorePage />} />
-                
-                
+                <Route path='/explore' element={<ExplorePage />} /> 
                 <Route path='/:slug' element={<PlacePage />} />
-                
                 <Route path='/planner' element={<PlannerPage />} />
                 <Route path='/checkout' element={<CheckoutPage />} />
               </Route>
