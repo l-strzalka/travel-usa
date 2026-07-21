@@ -70,8 +70,7 @@ export const ProductEdit: React.FC = () => {
     setUploadError(null);
 
     try {
-      // 1. Zmieniamy ścieżkę na zgodną z kontrolerem NestJS: /upload zamiast /api/upload
-      // 2. Używamy axiosInstance, który sam doklei token JWT do nagłówków
+  
       const response = await axios.post(
         `${API_URL}/upload`,
         formData,
@@ -96,7 +95,6 @@ export const ProductEdit: React.FC = () => {
     }
   };
 
-  // ROZWIĄZANIE DLA REACT 19: Usuwamy focusElementRef i ref z właściwości przycisku zapisu
   const { focusElementRef, ref, ...safeSaveButtonProps } =
     saveButtonProps as any;
 
