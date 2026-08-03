@@ -82,7 +82,6 @@ export class ProductsController {
     return product;
   }
 
-  // Zbędna metoda @Get('/:id') została usunięta!
 
   // POST localhost:3000/products
   @UseGuards(AdminGuard)
@@ -100,7 +99,7 @@ export class ProductsController {
   }
 
   // PATCH localhost:3000/products/1
-  @UseGuards(AdminGuard)
+
   @Patch(':id')
   async editProduct(@Body() body: EditProductDto, @Param('id') id: string) {
     return this.productsService.edit(+id, body);

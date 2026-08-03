@@ -43,6 +43,12 @@ export class ProductService {
   async getBySlug(slug: string) {
     return this.prisma.product.findUnique({
       where: { slug },
+      // Dołączamy punkty trasy posortowane po kolejności
+      include: {
+        routePoints: {
+          orderBy: { stopOrder: 'asc' },
+        },
+      },
     });
   }
 
@@ -66,6 +72,12 @@ export class ProductService {
         skip,
         take,
         orderBy,
+        // Pobieramy punkty również dla listy (np. do podglądu)
+        include: {
+          routePoints: {
+            orderBy: { stopOrder: 'asc' },
+          },
+        },
       }),
       this.prisma.product.count(),
     ]);
@@ -77,6 +89,11 @@ export class ProductService {
     try {
       const product = await this.prisma.product.findFirst({
         where: { name },
+        include: {
+          routePoints: {
+            orderBy: { stopOrder: 'asc' },
+          },
+        },
       });
       if (!product) {
         throw new NotFoundException('Produkt o takiej nazwie nie istnieje');
@@ -95,6 +112,11 @@ export class ProductService {
 
     const product = await this.prisma.product.findUnique({
       where: { id },
+      include: {
+        routePoints: {
+          orderBy: { stopOrder: 'asc' },
+        },
+      },
     });
     if (!product) {
       throw new NotFoundException(`Produkt o ID ${id} nie zotsał znaleziony`);
@@ -108,10 +130,19 @@ export class ProductService {
         'Błąd krytyczny: Cena nie może być mniejsza niz 0',
       );
     }
+
     // wygeneruj unikalny slug przed zapisem (Prisma wymaga pola slug)
-    const slug = await this.generateUniqueSlug(data.name);
+    const { routePoints, ...productData } = data;
+    const slug = await this.generateUniqueSlug(productData.name);
+    // Separujemy punkty trasy od reszty danych produktu
     return this.prisma.product.create({
-      data: { ...data, slug },
+      data: {
+        ...productData,
+        slug,
+        // Jeśli przesłano punkty, utwórz je w relacji
+        routePoints: routePoints?.length ? { create: routePoints } : undefined,
+      },
+      include: { routePoints: true },
     });
   }
 
@@ -126,15 +157,36 @@ export class ProductService {
   async edit(id: number, data: EditProductDto): Promise<Product> {
     await this.getById(id);
 
-    // jeśli zmieniona nazwa, zaktualizuj slug unikając kolizji
-    const updateData: EditProductDto & { slug?: string } = { ...data };
-    if (data.name) {
-      updateData.slug = await this.generateUniqueSlug(data.name, id);
+    const { routePoints, name, ...restData } = data;
+    // Typujemy jako 'any' z uwagi na dynamiczną budowę payloadu dla Prismy
+    const updateData: any = { ...restData };
+
+    if (name) {
+      updateData.name = name;
+      updateData.slug = await this.generateUniqueSlug(name, id);
+    }
+
+    // Jeśli w DTO przesłano nową tablicę punktów trasy
+    if (routePoints) {
+      // Oczyszczamy obiekty punktów trasy z niedozwolonych pól 'id' i 'productId' dla klauzuli Prisma create
+      const cleanRoutePoints = routePoints.map(
+        ({ id, productId, ...point }) => point,
+      );
+
+      updateData.routePoints = {
+        deleteMany: {}, // Najpierw czyścimy stare punkty dla tego produktu
+        create: cleanRoutePoints, // Następnie zapisujemy nową konfigurację
+      };
     }
 
     return this.prisma.product.update({
       where: { id },
       data: updateData,
+      include: {
+        routePoints: {
+          orderBy: { stopOrder: 'asc' },
+        },
+      },
     });
   }
 }

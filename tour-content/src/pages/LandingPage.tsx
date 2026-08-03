@@ -5,7 +5,7 @@ import { RecommendedPlaces } from "../features/components/RecommendedPlaces"
 import { FeaturedTours } from '@/features/components/ProductFeatured/FeaturedDisplay'
 
 
-export const LandingPage: React.FC = () => ( 
+export const LandingPage = () => ( 
     <>
       <Hero/>
       <RecommendedPlaces />

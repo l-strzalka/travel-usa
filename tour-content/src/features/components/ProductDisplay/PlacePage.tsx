@@ -1,513 +1,571 @@
-// tour-content/src/pages/PlacePage.tsx
-import { API_URL } from '@/App';
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { Product, CalculatorState } from './types/products-types';
 import { PlacePageSkeleton } from './ui/PlacePageSkeleton';
-import { resolveImageUrl } from '../../../utils/imageUrl';
+import { useProductQuery } from './api/useProductQuery';
+import { transformProductData } from './utils/transformProductData';
 
-// Importy Material UI
+
 import {
-  Container,
-  Grid,
   Box,
+  Container,
   Typography,
-  Paper,
+  Breadcrumbs,
+  Link as MuiLink,
   Button,
-  Select,
-  MenuItem,
-  Checkbox,
-  FormControlLabel,
+  Tabs,
+  Tab,
+  Paper,
+  Grid2,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
   Divider,
+  Alert,
+  AlertTitle,
 } from '@mui/material';
+import {
+  Place as PlaceIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  NavigateNext as NavigateNextIcon,
+  LocationOnOutlined as LocationIcon,
+  StarOutline as StarIcon,
+  ArrowBack as ArrowBackIcon,
+} from '@mui/icons-material';
 
-// Importy ikon Material UI
-import MapPinIcon from '@mui/icons-material/LocationOn';
-import UsersIcon from '@mui/icons-material/People';
-import ShieldCheckIcon from '@mui/icons-material/Security';
-import CalendarIcon from '@mui/icons-material/CalendarToday';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import XCircleIcon from '@mui/icons-material/Cancel';
-import CompassIcon from '@mui/icons-material/Explore';
-import usaBackground from '../../../assets/usa-background.png';
-
-
-
-export const PlacePage: React.FC = () => {
+export const PlacePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<number>(0);
 
-  // 1. Definicja stanu lokalnego dla kalkulatora ceny w locie
-  const [calcState, setCalcState] = useState<CalculatorState>({
-    participants: 1,
-    insuranceType: 'standard',
-    hasExtendedEquipment: false,
-    hasVIPTransfer: false,
-  });
+  const { data: product, isLoading, error } = useProductQuery(slug);
 
-  // 2. Pobieranie danych z wykorzystaniem TanStack Query v5+ / React 19
-  const { data: product, isLoading, error } = useQuery<Product>({
-    queryKey: ['product', slug],
-    queryFn: async () => {
-      if (!slug) throw new Error('Slug is required');
-      const response = await axios.get<Product>(`${API_URL}/products/${slug}`);
-      return response.data;
-    },
-    enabled: !!slug,
-    retry: 1,
-    staleTime: 1000 * 60 * 5, // 5 minut cache'owania
-  });
+  const offerData = useMemo(() => transformProductData(product), [product]);
 
-  // 3. Memoizowane obliczenia kalkulatora (brak zbędnych re-renderów)
-  const calculatedPrices = useMemo(() => {
-    if (!product) return { basePrice: 0, additions: 0, total: 0 };
-
-    const basePrice = product.price * calcState.participants;
-    let additions = 0;
-
-    // Ubezpieczenie
-    if (calcState.insuranceType === 'standard') {
-      additions += 150 * calcState.participants;
-    } else if (calcState.insuranceType === 'premium') {
-      additions += 350 * calcState.participants;
-    }
-
-    // Sprzęt turystyczny
-    if (calcState.hasExtendedEquipment) {
-      additions += 200 * calcState.participants;
-    }
-
-    // Transfer VIP
-    if (calcState.hasVIPTransfer) {
-      additions += 500; // Opłata jednorazowa
-    }
-
-    return {
-      basePrice,
-      additions,
-      total: basePrice + additions,
-    };
-  }, [product, calcState]);
-
-  // Obsługa akcji przejścia do kasy
-  const handleBooking = () => {
-    if (!product) return;
-    // Przekazujemy parametry konfiguracji rezerwacji do checkoutu za pomocą stanu routera
-    navigate('/checkout', { 
-      state: { 
-        productId: product.id, 
-        config: calcState,
-        totalPrice: calculatedPrices.total 
-      } 
-    });
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setActiveTab(newValue);
   };
 
-  // 4. Stany ładowania, błędów oraz pustego wyniku
+  const scrollToSection = (idSection: string) => {
+    const element = document.getElementById(idSection);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+
+
+  // 1. Stan ładowania z przygotowanym widokiem Skeleton
   if (isLoading) {
     return <PlacePageSkeleton />;
   }
 
-  if (error || !product) {
+  // 2. Obsługa błędu pobierania danych z serwera (Empty State / Error Boundary)
+  if (error || !offerData) {
     return (
-      <Container 
-        sx={{ 
-          minHeight: '60vh', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
-          px: 2, 
-          textAlign: 'center' 
-        }}
-      >
-        <XCircleIcon 
-          sx={{ 
-            fontSize: 64, 
-            color: 'error.main', 
-            mb: 2,
-            animation: 'bounce 2s infinite',
-            '@keyframes bounce': {
-              '0%, 100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-10px)' }
-            }
-          }} 
-        />
-        <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 3 }}>
-          {error ? 'Nie udało się załadować oferty' : 'Nie znaleziono oferty'}
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', mb: 3, maxWidth: 400 }}>
-          Wybrana wycieczka nie istnieje lub serwer bazy danych (XAMPP/MySQL) nie odpowiada.
-        </Typography>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate('/explore')}
-          sx={{ py: 1.5, px: 3, borderRadius: 3, fontWeight: 'bold', textTransform: 'none' }}
-        >
-          Wróć do wyszukiwarki
-        </Button>
+      <Container maxWidth='md' sx={{ py: 10 }}>
+        <Alert severity='error' variant='filled'>
+          <AlertTitle>Błąd pobierania oferty</AlertTitle>
+          {error?.message ||
+            'Nie udało się odnaleźć wskazanej oferty wycieczki.'}
+        </Alert>
+        <Box sx={{ mt: 3, textAlign: 'center' }}>
+          <Button
+            variant='outlined'
+            startIcon={<ArrowBackIcon />}
+            onClick={() => navigate('/explore')}
+          >
+            Wróć do listy ofert
+          </Button>
+        </Box>
       </Container>
     );
   }
 
-
-
   return (
-    <Box sx={{ backgroundImage: `linear-gradient(rgba(92, 92, 92, 0.71), rgba(41, 41, 41, 0.03)), url(${usaBackground})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        backgroundSize: 'cover',
-        backgroundAttachment: 'fixed',
-        minHeight: '100vh', py: 14 }}>
-      <Container maxWidth="lg">
-        
-        {/* NAGŁÓWEK STRONY */}
-        <Box sx={{ mb: 4, mx: 1 }}>
-          <Typography 
-            variant="h3" 
-            component="h1" 
-            sx={{ fontWeight: 800, color: '#d49800', mb: 4.5, letterSpacing: '-0.02em' }}
+    <Box component='main' sx={{ bgcolor: 'background.default', pb: 8 }}>
+      {/* HERO SECTION */}
+      <Box
+        sx={{
+          position: 'relative',
+          backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.57), rgba(0, 0, 0, 0.38)), url(${product ? product.imageUrl : ''})`,
+          minHeight: 500,
+          backgroundSize: 'cover',
+          backgroundPosition: '20% 15%',
+          color: 'common.white',
+          pt: 3,
+          pb: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Container maxWidth='lg'>
+          <Breadcrumbs
+            separator={
+              <NavigateNextIcon
+                fontSize='small'
+                sx={{ color: 'common.white' }}
+              />
+            }
+            aria-label='breadcrumb'
+            sx={{ mb: 4, '& .MuiBreadcrumbs-li': { color: 'common.white' } }}
           >
-            {product.name}
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2, color: 'text.secondary' }}>
-            {product.location && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <MapPinIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                <Typography variant="body1">{product.location}</Typography>
-              </Box>
+            {offerData.breadcrumbs.map((item, idx) =>
+              item.href ? (
+                <MuiLink
+                  key={idx}
+                  underline='hover'
+                  color='inherit'
+                  href={item.href}
+                  sx={{ fontSize: '0.875rem' }}
+                >
+                  {item.label}
+                </MuiLink>
+              ) : (
+                <Typography
+                  key={idx}
+                  variant='body2'
+                  sx={{ color: 'rgba(255,255,255,0.8)' }}
+                >
+                  {item.label}
+                </Typography>
+              ),
             )}
-            {product.latitude && product.longitude && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 0.5, 
-                  bgcolor: 'rgba(25, 118, 210, 0.08)', 
-                  color: 'primary.dark', 
-                  px: 1.5, 
-                  py: 0.5, 
-                  borderRadius: 5 
+          </Breadcrumbs>
+
+          <Box sx={{ maxWidth: 1200, mt: 8 }}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                textTransform: 'uppercase',
+                letterSpacing: 1,
+                mb: 1,
+                opacity: 0.9,
+              }}
+            >
+              {offerData.category}
+            </Typography>
+            <Typography
+              variant='h3'
+              component='h1'
+              sx={{ fontWeight: 700, mb: 2, }}
+            >
+              {product ? product.name : ''}
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+              <LocationIcon fontSize='small' />
+              <Typography variant='subtitle1'>{offerData.location}</Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+              <Typography variant='h4' sx={{ fontWeight: 600 }}>
+                Od {offerData.priceFrom.toLocaleString('pl-PL')}{' '}
+                {offerData.currency} / os
+              </Typography>
+              <Typography variant='h6' sx={{ opacity: 0.8 }}>
+                {offerData.durationDays}{' '}
+                {offerData.durationDays === 1 ? 'dzień' : 'dni'}
+              </Typography>
+            </Box>
+
+            <Button
+              variant='contained'
+              size='large'
+              color='primary'
+              onClick={() =>
+                navigate('/checkout', { state: { productId: offerData.id } })
+              }
+              sx={{
+                px: 4,
+                py: 1.5,
+                fontWeight: 'bold',
+                textTransform: 'none',
+                borderRadius: 2,
+              }}
+            >
+              Rezerwuj / Zapytaj o Ofertę
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+
+      {/* STICKY NAV TABS */}
+      <Paper
+        elevation={1}
+        sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          borderRadius: 0,
+          bgcolor: 'background.paper',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Container maxWidth='lg'>
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            variant='scrollable'
+            scrollButtons='auto'
+            aria-label='Sekcje wycieczki'
+            sx={{
+              '& .MuiTabs-flexContainer': {
+                justifyContent: 'space-between',
+                p: 2,
+            '& .MuiButtonBase-root': {
+                fontSize: 16,
+                fontWeight: 700
+            }
+              },
+            }}
+          >
+            <Tab
+              label='Opis i Atrakcje'
+              onClick={() => scrollToSection('opis-podrozy')}
+            />
+            <Tab
+              label='Plan podróży'
+              onClick={() => scrollToSection('plan-podrozy')}
+            />
+            <Tab label='Mapa i Trasa' onClick={() => scrollToSection('mapa')} />
+            <Tab label='Cena' onClick={() => scrollToSection('cena')} />
+          </Tabs>
+        </Container>
+      </Paper>
+
+      {/* GLOWNA ZAWARTOSC */}
+      <Container maxWidth='xl' sx={{ mt: 6, }}>
+        {/* OPIS I HIGHLIGHTS */}
+        <Box
+          id='opis-podrozy'
+          component='section'
+          sx={{ mb: 8, scrollMarginTop: '80px', mx:3}}
+        >
+          <Grid2 container spacing={12}>
+            <Grid2 size={{ xs: 12, md: 6, lg: 7 }}>
+              <Typography 
+                variant='h4'
+                component='h2'
+                sx={{ fontWeight: 700, mb: 3, textAlign: 'left'}}
+              >
+                {product ? product.name: ''}
+              </Typography>
+              <Typography
+                variant='body1'
+                color='text.secondary'
+                paragraph
+                sx={{ lineHeight: 1.8, whitespace: 'pre-line', textAlign: 'left' }}
+              >
+                {product ? product.description : ''}
+              </Typography>
+
+              <Typography
+                variant='h5'
+                component='h3'
+                sx={{ fontWeight: 600, mt: 8, mb: 2, textAlign: 'left'}}
+              >
+                Największe atrakcje tej podróży
+              </Typography>
+              <List disablePadding>
+                {offerData.highlights.map((item, idx) => (
+                  <ListItem key={idx} sx={{ px: 0, py: 0.75 }}>
+                    <ListItemIcon sx={{ minWidth: 32 }}>
+                      <StarIcon color='primary' fontSize='small' />
+                    </ListItemIcon>
+                    <ListItemText primary={item} />
+                  </ListItem>
+                ))}
+              </List>
+            </Grid2>
+
+            <Grid2 size={{ xs: 12, md: 6, lg: 5 }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  bgcolor: 'action.hover',
+                  borderRadius: 3,
+                  border: '1px solid',
+                  borderColor: 'divider',
                 }}
               >
-                <CompassIcon sx={{ fontSize: 16 }} />
-                <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                  GPS: {product.latitude.toFixed(4)}, {product.longitude.toFixed(4)}
+                <Typography
+                  variant='h6'
+                  component='h3'
+                  sx={{ fontWeight: 700, mb: 2 }}
+                >
+                  Wakacje szyte na miarę
                 </Typography>
-              </Box>
-            )}
+                <List disablePadding>
+                  {offerData.tailorMadeFeatures.map((feat, idx) => (
+                    <ListItem key={idx} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 28 }}>
+                        <CheckIcon color='success' fontSize='small' />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={feat}
+                        primaryTypographyProps={{ variant: 'body2' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Grid2>
+          </Grid2>
+        </Box>
+
+        <Divider sx={{ my: 6 }} />
+
+        {/* PLAN PODROZY */}
+        <Box
+          id='plan-podrozy'
+          component='section'
+          sx={{ mb: 8, scrollMarginTop: '80px' }}
+        >
+          <Typography
+            variant='h4'
+            component='h2'
+            sx={{ fontWeight: 700, mb: 4 }}
+          >
+            Plan podróży ({offerData.tripPlan.length}{' '}
+            {offerData.tripPlan.length === 1 ? 'etap' : 'etapy'})
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {offerData.tripPlan.map((step, idx) => (
+              <Paper
+                key={idx}
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: 3,
+                }}
+              >
+                <Box
+                  sx={{
+                    minWidth: 100,
+                    fontWeight: 700,
+                    color: 'primary.main',
+                    fontSize: '1.1rem',
+                  }}
+                >
+                  {step.dayLabel}
+                </Box>
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography
+                    variant='h6'
+                    component='h3'
+                    sx={{ fontWeight: 600, mb: 1 }}
+                  >
+                    {step.title}
+                  </Typography>
+                  {step.description.map((p, pIdx) => (
+                    <Typography
+                      key={pIdx}
+                      variant='body2'
+                      color='text.secondary'
+                      paragraph
+                      sx={{ mb: 1 }}
+                    >
+                      {p}
+                    </Typography>
+                  ))}
+                </Box>
+              </Paper>
+            ))}
           </Box>
         </Box>
 
-        {/* SIATKA GŁÓWNA */}
-        <Grid container spacing={4} alignItems="flex-start">
-          
-          {/* LEWA KOLUMNA: Prezentacja, zdjęcia, opis */}
-          <Grid item xs={12} lg={8} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            
-            {/* Galeria / Zdjęcie główne z lazy-loading */}
-            <Box 
-              sx={{ 
-                position: 'relative', 
-                overflow: 'hidden', 
-                borderRadius: 6, 
-                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', 
-                bgcolor: 'grey.200', 
-                aspectRatio: '16/9' 
-              }}
-            >
-              {product.imageUrl ? (
-                <Box
-                  component="img"
-                  src={resolveImageUrl(product.imageUrl)}
-                  alt={product.name}
-                  loading="lazy"
-                  sx={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'transform 0.5s ease',
-                    '&:hover': {
-                      transform: 'scale(1.05)'
-                    }
-                  }}
-                />
-              ) : (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.disabled' }}>
-                  <Typography>Brak zdjęcia oferty</Typography>
-                </Box>
-              )}
-              <Paper 
-                sx={{ 
-                  position: 'absolute', 
-                  top: 16, 
-                  left: 16, 
-                  bgcolor: 'rgba(255, 255, 255, 0.9)', 
-                  backdropFilter: 'blur(4px)', 
-                  px: 2, 
-                  py: 1, 
-                  borderRadius: 4, 
-                  fontWeight: 'bold', 
-                  color: 'primary.dark', 
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' 
-                }}
-              >
-                Cena bazowa: {product.price.toLocaleString()} PLN / os.
-              </Paper>
-            </Box>
+        <Divider sx={{ my: 6 }} />
 
-            {/* Szczegółowy opis oferty */}
-            <Paper elevation={0} sx={{ p: 4, borderRadius: 6, border: '1px solid', borderColor: 'grey.100' }}>
-              <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', color: 'text.primary', mb: 2 }}>
-                Opis programu wycieczki
-              </Typography>
-              <Typography 
-                variant="body1" 
-                sx={{ color: 'text.secondary', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}
-              >
-                {product.description}
-              </Typography>
-            </Paper>
-
-            {/* Sekcja: Co jest w cenie (Inkluzje i ekskluzje) */}
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Box 
-                  sx={{ 
-                    bgcolor: 'rgba(186, 255, 189, 0.85)', 
-                    border: '1px solid', 
-                    borderColor: 'rgba(46, 125, 50, 0.12)', 
-                    p: 3, 
-                    borderRadius: 4,
-                    height: '100%'
-                  }}
-                >
-                  <Typography variant="subtitle1" sx={{ color: 'success.dark', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <CheckCircleIcon sx={{ color: 'success.main' }} /> W cenie wyjazdu
-                  </Typography>
-                  <Box component="ul" sx={{ p: 0, m: 0, listStyleType: 'none', '& li': { mb: 1, fontSize: '0.875rem', color: 'success.dark' } }}>
-                    <li>• Pełne zakwaterowanie w hotelach 3/4*</li>
-                    <li>• Przejazdy komfortowym autokarem z klimatyzacją</li>
-                    <li>• Opieka certyfikowanego polskojęzycznego pilota</li>
-                    <li>• Podstawowe ubezpieczenie KL i NNW</li>
-                  </Box>
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <Box 
-                  sx={{ 
-                    bgcolor: 'rgba(255, 214, 214, 0.83)', 
-                    border: '1px solid', 
-                    borderColor: 'rgba(211, 47, 47, 0.12)', 
-                    p: 3, 
-                    borderRadius: 4,
-                    height: '100%'
-                  }}
-                >
-                  <Typography variant="subtitle1" sx={{ color: 'error.dark', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                    <XCircleIcon sx={{ color: 'error.main' }} /> We własnym zakresie
-                  </Typography>
-                  <Box component="ul" sx={{ p: 0, m: 0, listStyleType: 'none', '& li': { mb: 1, fontSize: '0.875rem', color: 'error.dark' } }}>
-                    <li>• Bilety wstępu do parków narodowych i muzeów (~120 USD)</li>
-                    <li>• Wyżywienie poza śniadaniami</li>
-                    <li>• Atrakcje fakultatywne i wydatki własne</li>
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
-
-            {/* Interaktywna mapa (lub dynamiczny placeholder oparty o współrzędne z bazy) */}
-            {product.latitude && product.longitude && (
-              <Paper elevation={0} sx={{ p: 3, borderRadius: 6, border: '1px solid', borderColor: 'grey.100' }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Lokalizacja i mapa wyprawy</Typography>
-                <Box sx={{ aspectRatio: '16/9', width: '100%', borderRadius: 4, overflow: 'hidden', bgcolor: 'grey.100', border: '1px solid', borderColor: 'grey.200', position: 'relative' }}>
-                  <Box
-                    component="iframe"
-                    title="Mapa wycieczki"
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="no"
-                    src={`https://maps.google.com/maps?q=${product.latitude},${product.longitude}&hl=pl&z=10&output=embed`}
-                    sx={{ position: 'absolute', inset: 0 }}
-                  />
-                </Box>
-              </Paper>
-            )}
-
-          </Grid>
-
-          {/* PRAWA KOLUMNA: Kalkulator ceny w locie i przycisk rezerwacji */}
-          <Grid 
-            item 
-            xs={12} 
-            lg={4} 
-            sx={{ 
-              position: { lg: 'sticky' }, 
-              top: { lg: 32 } 
+        {/* MAPA I GPS */}
+        <Box
+          id='mapa'
+          component='section'
+          sx={{ mb: 8, scrollMarginTop: '80px' }}
+        >
+          <Typography
+            variant='h4'
+            component='h2'
+            sx={{ fontWeight: 700, mb: 3 }}
+          >
+            Trasa i Lokalizacja GPS
+          </Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              bgcolor: 'grey.100',
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           >
-            <Paper 
-              elevation={4} 
-              sx={{ 
-                p: { xs: 3, sm: 4 }, 
-                borderRadius: 6, 
-                border: '1px solid', 
-                borderColor: 'grey.100',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3
-              }}
-            >
-              
-              <Box>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    fontWeight: 'bold', 
-                    color: 'text.disabled', 
-                    letterSpacing: '0.1em', 
-                    textTransform: 'uppercase', 
-                    display: 'block', 
-                    mb: 0.5 
-                  }}
-                >
-                  Skonfiguruj i zarezerwuj
+            <Box sx={{ textAlign: 'center', color: 'text.secondary', mb: 3 }}>
+              <PlaceIcon sx={{ fontSize: 48, mb: 1, color: 'primary.main' }} />
+              <Typography variant='h6' color='text.primary'>
+                Główny punkt: {offerData.location}
+              </Typography>
+              {offerData.latitude && offerData.longitude && (
+                <Typography variant='body2'>
+                  Współrzędne główne: {offerData.latitude},{' '}
+                  {offerData.longitude}
                 </Typography>
-                <Typography variant="h3" component="p" sx={{ fontWeight: 900 }}>
-                  {calculatedPrices.total.toLocaleString()} <Typography component="span" variant="h5" sx={{ fontWeight: 'medium' }}>PLN</Typography>
+              )}
+            </Box>
+
+            {offerData.routePoints.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2 }}>
+                  Punkty trasy zasilone z serwera:
                 </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
-                  Łączny koszt dla {calcState.participants} os. z dodatkami
-                </Typography>
+                <Grid container spacing={2}>
+                  {offerData.routePoints.map((point, index) => (
+                    <Grid item xs={12} sm={6} md={4} key={point.id || index}>
+                      <Paper
+                        variant='outlined'
+                        sx={{ p: 2, bgcolor: 'background.paper' }}
+                      >
+                        <Typography variant='subtitle2' color='primary'>
+                          #{point.stopOrder}{' '}
+                          {point.title || `Przystanek ${index + 1}`}
+                        </Typography>
+                        <Typography variant='caption' color='text.secondary'>
+                          Lat: {point.latitude} | Lng: {point.longitude}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
+            )}
+          </Paper>
+        </Box>
 
-              <Divider sx={{ borderColor: 'grey.100' }} />
+        <Divider sx={{ my: 6 }} />
 
-              {/* Wybór liczby uczestników */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <UsersIcon sx={{ color: 'primary.main', fontSize: 20 }} /> Liczba uczestników
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setCalcState(prev => ({ ...prev, participants: Math.max(1, prev.participants - 1) }))}
-                    sx={{ minWidth: 40, height: 40, p: 0, fontWeight: 'bold', fontSize: '1.2rem', borderRadius: 2 }}
-                  >
-                    -
-                  </Button>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', width: 32, textAlign: 'center' }}>
-                    {calcState.participants}
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setCalcState(prev => ({ ...prev, participants: prev.participants + 1 }))}
-                    sx={{ minWidth: 40, height: 40, p: 0, fontWeight: 'bold', fontSize: '1.2rem', borderRadius: 2 }}
-                  >
-                    +
-                  </Button>
-                </Box>
-              </Box>
+        {/* SZCZEGÓŁY CENY */}
+        <Box
+          id='cena'
+          component='section'
+          sx={{ mb: 4, scrollMarginTop: '80px' }}
+        >
+          <Typography
+            variant='h4'
+            component='h2'
+            sx={{ fontWeight: 700, mb: 4 }}
+          >
+            Cena i szczegóły
+          </Typography>
 
-              {/* Wybór ubezpieczenia */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ShieldCheckIcon sx={{ color: 'primary.main', fontSize: 20 }} /> Pakiet ubezpieczeń
-                </Typography>
-                <Select
-                  value={calcState.insuranceType}
-                  onChange={(e) => setCalcState(prev => ({ ...prev, insuranceType: e.target.value as any }))}
-                  size="small"
-                  fullWidth
-                  sx={{ borderRadius: 3, bgcolor: 'background.paper' }}
-                >
-                  <MenuItem value="none">Brak dodatkowego ubezpieczenia (0 PLN)</MenuItem>
-                  <MenuItem value="standard">Standard (+150 PLN / os.)</MenuItem>
-                  <MenuItem value="premium">Premium Travel Cover (+350 PLN / os.)</MenuItem>
-                </Select>
-              </Box>
-
-              {/* Dodatki checkbox */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'text.primary' }}>Dodatkowe usługi</Typography>
-                
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={calcState.hasExtendedEquipment}
-                      onChange={(e) => setCalcState(prev => ({ ...prev, hasExtendedEquipment: e.target.checked }))}
-                    />
-                  }
-                  label={
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Wypożyczenie profesjonalnego sprzętu turystycznego (+200 PLN / os.)
-                    </Typography>
-                  }
-                  sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { p: 0, mr: 1, mt: 0.2 } }}
-                />
-
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={calcState.hasVIPTransfer}
-                      onChange={(e) => setCalcState(prev => ({ ...prev, hasVIPTransfer: e.target.checked }))}
-                    />
-                  }
-                  label={
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Prywatny transfer VIP z/na lotnisko (+500 PLN / grupa)
-                    </Typography>
-                  }
-                  sx={{ alignItems: 'flex-start', m: 0, '& .MuiCheckbox-root': { p: 0, mr: 1, mt: 0.2 } }}
-                />
-              </Box>
-
-              {/* Podsumowanie kwotowe kalkulatora */}
-              <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 4, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Cena wycieczki ({calcState.participants}x):</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>{calculatedPrices.basePrice.toLocaleString()} PLN</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>Wybrane opcje dodatkowe:</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>{calculatedPrices.additions.toLocaleString()} PLN</Typography>
-                </Box>
-              </Box>
-
-              {/* Przycisk CTA */}
-              <Button
-                variant="contained"
-                onClick={handleBooking}
-                startIcon={<CalendarIcon />}
-                fullWidth
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={0}
                 sx={{
-                  py: 2,
-                  borderRadius: 4,
-                  fontWeight: 'bold',
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  boxShadow: '0 4px 14px 0 rgba(25, 118, 210, 0.4)',
-                  '&:hover': {
-                    boxShadow: '0 6px 20px 0 rgba(25, 118, 210, 0.4)'
-                  }
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  height: '100%',
                 }}
               >
-                Przejdź do rezerwacji
-              </Button>
+                <Typography
+                  variant='h6'
+                  component='h3'
+                  color='success.main'
+                  sx={{ fontWeight: 700, mb: 2 }}
+                >
+                  Cena zawiera
+                </Typography>
+                <List disablePadding>
+                  {offerData.priceIncludes.map((item, idx) => (
+                    <ListItem
+                      key={idx}
+                      sx={{ px: 0, py: 1, alignItems: 'flex-start' }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
+                        <CheckIcon color='success' fontSize='small' />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.title}
+                        secondary={item.description}
+                        primaryTypographyProps={{
+                          fontWeight: 600,
+                          variant: 'body2',
+                        }}
+                        secondaryTypographyProps={{ variant: 'body2' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Grid>
 
-              <Typography variant="caption" sx={{ color: 'text.disabled', textAlign: 'center', lineHeight: 1.4 }}>
-                Dokonanie rezerwacji nie wiąże się z natychmiastowym obowiązkiem zapłaty. Masz 24h na opłacenie zaliczki.
-              </Typography>
-
-            </Paper>
+            <Grid item xs={12} md={6}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  height: '100%',
+                }}
+              >
+                <Typography
+                  variant='h6'
+                  component='h3'
+                  color='error.main'
+                  sx={{ fontWeight: 700, mb: 2 }}
+                >
+                  Cena nie zawiera
+                </Typography>
+                <List disablePadding>
+                  {offerData.priceExcludes.map((item, idx) => (
+                    <ListItem
+                      key={idx}
+                      sx={{ px: 0, py: 1, alignItems: 'flex-start' }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
+                        <CloseIcon color='error' fontSize='small' />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item.title}
+                        secondary={item.description}
+                        primaryTypographyProps={{
+                          fontWeight: 600,
+                          variant: 'body2',
+                        }}
+                        secondaryTypographyProps={{ variant: 'body2' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Grid>
           </Grid>
 
-        </Grid>
-
+          <Typography
+            variant='caption'
+            color='text.secondary'
+            sx={{ display: 'block', mt: 3, fontStyle: 'italic' }}
+          >
+            {offerData.priceDisclaimer}
+          </Typography>
+        </Box>
       </Container>
     </Box>
   );
 };
+
+export default PlacePage;

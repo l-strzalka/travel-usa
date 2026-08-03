@@ -81,7 +81,7 @@ export const FeaturedTours: React.FC = memo(() => {
                         image={resolveImageUrl(tour.imageUrl)}
                         alt={tour.name}
                         loading="lazy"
-                        sx={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                        sx={{ height: '100%', width: '100%', objectFit: 'cover', }}
                       />
                     ) : (
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.disabled' }}>

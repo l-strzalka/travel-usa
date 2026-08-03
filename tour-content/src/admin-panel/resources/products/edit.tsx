@@ -1,7 +1,9 @@
+// TravelUSA\tour-content\src\admin-panel\resources\products\edit.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, FRONTEND_URL } from '@/App';
 import { useForm } from '@refinedev/react-hook-form';
+import { useFieldArray } from 'react-hook-form';
 import {
   Box,
   TextField,
@@ -10,13 +12,23 @@ import {
   Paper,
   Stack,
   CircularProgress,
+  IconButton,
+  Divider,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { resolveImageUrl } from '../../../utils/imageUrl';
 
+interface RoutePointInput {
+  id?: number;
+  latitude: number;
+  longitude: number;
+  stopOrder: number;
+  title?: string;
+}
 
-// Interfejs reprezentujący strukturę danych formularza wycieczki
 interface ProductFormInputs {
   id: number;
   name: string;
@@ -27,10 +39,14 @@ interface ProductFormInputs {
   imageUrl?: string;
   latitude?: number;
   longitude?: number;
+  routePoints?: RoutePointInput[];
 }
 
-// Spójne adresy URL zadeklarowane w jednym miejscu
-
+const parseOptionalNumber = (value: any) => {
+  if (value === '' || value === null || value === undefined) return undefined;
+  const parsed = Number(value.toString().replace(',', '.'));
+  return isNaN(parsed) ? undefined : parsed;
+};
 
 export const ProductEdit: React.FC = () => {
   const {
@@ -38,9 +54,10 @@ export const ProductEdit: React.FC = () => {
     handleSubmit,
     formState: { errors },
     saveButtonProps,
-    refineCore: { queryResult },
+    refineCore: { queryResult, onFinish },
     setValue,
     watch,
+    control,
   } = useForm<ProductFormInputs>({
     refineCoreProps: {
       resource: 'products',
@@ -48,13 +65,15 @@ export const ProductEdit: React.FC = () => {
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'routePoints',
+  });
+
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const currentImageUrl = watch('imageUrl');
-
-
-  // ... wewnątrz komponentu ProductEdit:
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -70,8 +89,6 @@ export const ProductEdit: React.FC = () => {
     setUploadError(null);
 
     try {
-      // 1. Zmieniamy ścieżkę na zgodną z kontrolerem NestJS: /upload zamiast /api/upload
-      // 2. Używamy axiosInstance, który sam doklei token JWT do nagłówków
       const response = await axios.post(
         `${API_URL}/upload`,
         formData,
@@ -96,20 +113,41 @@ export const ProductEdit: React.FC = () => {
     }
   };
 
-  // ROZWIĄZANIE DLA REACT 19: Usuwamy focusElementRef i ref z właściwości przycisku zapisu
-  const { focusElementRef, ref, ...safeSaveButtonProps } =
-    saveButtonProps as any;
+  const { focusElementRef, ref, ...safeSaveButtonProps } = saveButtonProps as any;
 
-  // Pobranie aktualnych danych wycieczki z queryResult
   const productId = queryResult?.data?.data?.id;
   const productSlug = queryResult?.data?.data?.slug;
-
-  // POPRAWKA ŚCIEŻKI PODGLĄDU: Zgodnie z konfiguracją trasy w App.tsx -> /:slug
   const previewUrl = productSlug ? `${FRONTEND_URL}/${productSlug}` : null;
 
+  const handleFormSubmit = (values: ProductFormInputs) => {
+    // 1. Kopia obiektów z formularza
+    const payload: Record<string, any> = { ...values };
+
+    // Usuwamy ID głównego wycieczki z body (NestJS przekazuje je w URL)
+    delete payload.id;
+
+    // 2. Oczyszczanie routePoints – wycinamy 'id' i 'productId', zostawiamy tylko akceptowane pola DTO
+    if (Array.isArray(payload.routePoints)) {
+      payload.routePoints = payload.routePoints.map((point, index) => {
+        return {
+          title: point.title || '',
+          latitude: parseOptionalNumber(point.latitude) ?? 0,
+          longitude: parseOptionalNumber(point.longitude) ?? 0,
+          stopOrder: index + 1,
+        };
+      });
+    }
+
+    // 3. Usuwanie wartości undefined
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key]
+    );
+
+    onFinish(payload as ProductFormInputs);
+  };
+
   return (
-    <Paper sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
-      {/* Nagłówek z przyciskiem podglądu */}
+    <Paper sx={{ p: 3, maxWidth: 700, mx: 'auto' }}>
       <Stack
         direction='row'
         justifyContent='space-between'
@@ -132,7 +170,7 @@ export const ProductEdit: React.FC = () => {
         )}
       </Stack>
 
-      <Box component='form' onSubmit={handleSubmit} noValidate>
+      <Box component='form' onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <Stack spacing={3}>
           <TextField
             {...register('name', { required: 'Nazwa jest wymagana' })}
@@ -149,12 +187,7 @@ export const ProductEdit: React.FC = () => {
                 value: 0,
                 message: 'Cena nie może być ujemna',
               },
-              setValueAs: (value) => {
-                if (value === '' || value === null || value === undefined)
-                  return undefined;
-                const parsed = Number(value.toString().replace(',', '.'));
-                return isNaN(parsed) ? undefined : parsed;
-              },
+              setValueAs: parseOptionalNumber,
             })}
             label='Cena (PLN)'
             type='text'
@@ -184,7 +217,6 @@ export const ProductEdit: React.FC = () => {
             InputLabelProps={{ shrink: true }}
           />
 
-          {/* Sekcja uploadu mediów */}
           <Box
             sx={{
               border: '1px dashed',
@@ -262,10 +294,9 @@ export const ProductEdit: React.FC = () => {
 
           <Stack direction='row' spacing={2}>
             <TextField
-              {...register('latitude', { valueAsNumber: true })}
+              {...register('latitude', { setValueAs: parseOptionalNumber })}
               label='Szerokość GPS'
-              type='number'
-              inputProps={{ step: 'any' }}
+              type='text'
               fullWidth
               InputLabelProps={{ shrink: true }}
             />
@@ -273,14 +304,75 @@ export const ProductEdit: React.FC = () => {
               /
             </Typography>
             <TextField
-              {...register('longitude', { valueAsNumber: true })}
+              {...register('longitude', { setValueAs: parseOptionalNumber })}
               label='Długość GPS'
-              type='number'
-              inputProps={{ step: 'any' }}
+              type='text'
               fullWidth
               InputLabelProps={{ shrink: true }}
             />
           </Stack>
+
+          <Divider />
+
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant='h6'>Punkty trasy (Przystanki na mapie)</Typography>
+              <Button
+                variant='outlined'
+                startIcon={<AddIcon />}
+                onClick={() =>
+                  append({
+                    latitude: 0,
+                    longitude: 0,
+                    stopOrder: fields.length + 1,
+                    title: '',
+                  })
+                }
+              >
+                Dodaj przystanek
+              </Button>
+            </Box>
+
+            <Stack spacing={2}>
+              {fields.map((field, index) => (
+                <Paper key={field.id} variant='outlined' sx={{ p: 2 }}>
+                  <Stack direction='row' spacing={2} alignItems='center'>
+                    <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                      #{index + 1}
+                    </Typography>
+                    <TextField
+                      {...register(`routePoints.${index}.title`)}
+                      label='Nazwa przystanku'
+                      size='small'
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      {...register(`routePoints.${index}.latitude`, { setValueAs: parseOptionalNumber })}
+                      label='Lat'
+                      type='text'
+                      size='small'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                      {...register(`routePoints.${index}.longitude`, { setValueAs: parseOptionalNumber })}
+                      label='Lng'
+                      type='text'
+                      size='small'
+                      InputLabelProps={{ shrink: true }}
+                    />
+                    <IconButton
+                      color='error'
+                      onClick={() => remove(index)}
+                      size='small'
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Box>
 
           <Button
             {...safeSaveButtonProps}

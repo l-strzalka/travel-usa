@@ -37,11 +37,25 @@ model Product {
   latitude    Float? // Szerokość geograficzna (GPS)
   longitude   Float? // Długość geograficzna (GPS)
   createdAt   DateTime @default(now())
-
+  
   orderItems OrderItem[]
   planItems  PlannerItem[]
+  routePoints RoutePoint[]
 
   @@map("product")
+}
+
+model RoutePoint {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  latitude    Float
+  longitude   Float
+  stopOrder   Int      // Kolejność punktu na trasie (np. 1, 2, 3...)
+  title       String?  // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
+  
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("routepoint")
 }
 
 model Order {

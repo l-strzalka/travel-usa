@@ -1,8 +1,8 @@
-//TravelUSA\tour-content\src\admin-panel\resources\products\create.tsx
+// TravelUSA\tour-content\src\admin-panel\resources\products\create.tsx
 import { API_URL } from '@/App';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from '@refinedev/react-hook-form';
-import slugify from 'slugify';
+import { useFieldArray } from 'react-hook-form';
 import {
   Box,
   TextField,
@@ -11,57 +11,72 @@ import {
   Paper,
   Stack,
   CircularProgress,
+  IconButton,
+  Divider,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 import { resolveImageUrl } from '../../../utils/imageUrl';
 
-// Interfejs reprezentujący struktę danych formularza
+interface RoutePointInput {
+  id?: number;
+  latitude: number;
+  longitude: number;
+  stopOrder: number;
+  title?: string;
+}
+
 interface ProductFormInputs {
-  id: number;
+  id?: number;
   name: string;
-  slug: string
+  slug?: string;
   price: number;
   description: string;
   location?: string;
   imageUrl?: string;
   latitude?: number;
   longitude?: number;
+  routePoints?: RoutePointInput[];
 }
 
-export const ProductCreate: React.FC = () => {
+const parseOptionalNumber = (value: any) => {
+  if (value === '' || value === null || value === undefined) return undefined;
+  const parsed = Number(value.toString().replace(',', '.'));
+  return isNaN(parsed) ? undefined : parsed;
+};
+
+export const ProductCreate = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     saveButtonProps,
-    setValue, // Służy do programistycznego ustawiania wartości w formularzu
-    watch, // Służy do nasłuchiwania zmian w polach na żywo (potrzebne do podglądu zdjęcia)
+    setValue,
+    watch,
+    control,
+    refineCore: { onFinish },
   } = useForm<ProductFormInputs>({
     refineCoreProps: {
       resource: 'products',
       redirect: 'list',
     },
+    defaultValues: {
+      routePoints: [],
+    },
   });
 
-  // Definiuje stany lokalne dla procesu przesyłania pliku
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'routePoints',
+  });
+
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const currentName = watch('name');
 
-  useEffect(() => {
-  if (currentName) {
-    const generatedSlug = slugify(currentName, { lower: true, strict: true });
-    setValue('slug', generatedSlug, { shouldValidate: true, shouldDirty: true });
-  }
-}, [currentName, setValue]);
-
-  // Obserwuje pole imageUrl w celu renderowania podglądu zdjęcia
   const currentImageUrl = watch('imageUrl');
 
-  /**
-   * Obsługa asynchronicznego przesyłania pliku na serwer NestJS.
-   */
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -78,7 +93,6 @@ export const ProductCreate: React.FC = () => {
     try {
       const token = localStorage.getItem('auth_token');
 
-      // Wykorzystujemy adres backendu Nest z uwzględnieniem prefiksu api
       const response = await axios.post(
         `${API_URL}/upload`,
         formData,
@@ -91,7 +105,6 @@ export const ProductCreate: React.FC = () => {
       );
 
       if (response.data && response.data.url) {
-        // Aktualizujemy wartość pola imageUrl w react-hook-form
         setValue('imageUrl', response.data.url, { shouldValidate: true });
       }
     } catch (err: any) {
@@ -105,16 +118,41 @@ export const ProductCreate: React.FC = () => {
     }
   };
 
-  // ROZWIĄZANIE DLA REACT 19: Odfiltrowujemy focusElementRef oraz ref z saveButtonProps
-  const { focusElementRef, ref, ...safeSaveButtonProps } =
-    saveButtonProps as any;
+  const { focusElementRef, ref, ...safeSaveButtonProps } = saveButtonProps as any;
+
+  const handleFormSubmit = (values: ProductFormInputs) => {
+    // 1. Jawnie odcinamy 'id' oraz 'slug' od reszty danych
+    const { id, slug, routePoints, ...restValues } = values;
+
+    const payload: Record<string, any> = {
+      ...restValues,
+    };
+
+    // 2. Oczyszczamy punkty trasy ze zbędnych pól
+    if (Array.isArray(routePoints)) {
+      payload.routePoints = routePoints.map((point, index) => ({
+        title: point.title || '',
+        latitude: parseOptionalNumber(point.latitude) ?? 0,
+        longitude: parseOptionalNumber(point.longitude) ?? 0,
+        stopOrder: index + 1,
+      }));
+    }
+
+    // 3. Usuwamy ewentualne pola z wartością undefined
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key],
+    );
+
+    // Przekazujemy w pełni oczyszczony obiekt bezpośrednio do onFinish
+    onFinish(payload as any);
+  };
 
   return (
     <Paper sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
       <Typography variant='h5' mb={3}>
         Nowa Wycieczka
       </Typography>
-      <Box component='form' onSubmit={handleSubmit} noValidate>
+      <Box component='form' onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <Stack spacing={3}>
           <TextField
             {...register('name', {
@@ -136,12 +174,7 @@ export const ProductCreate: React.FC = () => {
                 value: 0,
                 message: 'Cena nie może być ujemna',
               },
-              setValueAs: (value) => {
-                if (value === '' || value === null || value === undefined)
-                  return undefined;
-                const parsed = Number(value.toString().replace(',', '.'));
-                return isNaN(parsed) ? undefined : parsed;
-              },
+              setValueAs: parseOptionalNumber,
             })}
             label='Cena (PLN)'
             type='text'
@@ -173,7 +206,6 @@ export const ProductCreate: React.FC = () => {
             fullWidth
           />
 
-          {/* --- SEKCJA MODUŁU MEDIA / UPLOADU --- */}
           <Box
             sx={{
               border: '1px dashed',
@@ -225,7 +257,6 @@ export const ProductCreate: React.FC = () => {
               </Typography>
             )}
 
-            {/* Input tekstowy pozostaje zsynchronizowany w razie ręcznego wklejenia linku zewnętrznego */}
             <TextField
               {...register('imageUrl')}
               label='Wygenerowany URL zdjęcia'
@@ -234,7 +265,6 @@ export const ProductCreate: React.FC = () => {
               placeholder='Zostanie uzupełniony automatycznie po przesłaniu pliku'
             />
 
-            {/* Podgląd grafiki w czasie rzeczywistym */}
             {currentImageUrl && (
               <Box sx={{ mt: 2, textAlign: 'center' }}>
                 <img
@@ -250,27 +280,85 @@ export const ProductCreate: React.FC = () => {
               </Box>
             )}
           </Box>
-          {/* --- KONIEC SEKCJI UPLOADU --- */}
 
           <Stack direction='row' spacing={2}>
             <TextField
-              {...register('latitude', { valueAsNumber: true })}
+              {...register('latitude', { setValueAs: parseOptionalNumber })}
               label='Szerokość geograficzna (GPS)'
-              type='number'
-              inputProps={{ step: 'any' }}
+              type='text'
               fullWidth
+              InputLabelProps={{ shrink: true }}
             />
             <TextField
-              {...register('longitude', { valueAsNumber: true })}
+              {...register('longitude', { setValueAs: parseOptionalNumber })}
               label='Długość geograficzna (GPS)'
-              type='number'
-              inputProps={{ step: 'any' }}
+              type='text'
               fullWidth
+              InputLabelProps={{ shrink: true }}
             />
           </Stack>
 
+          <Divider />
+
+          <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant='h6'>Punkty trasy (Przystanki na mapie)</Typography>
+              <Button
+                variant='outlined'
+                startIcon={<AddIcon />}
+                onClick={() =>
+                  append({
+                    latitude: 0,
+                    longitude: 0,
+                    stopOrder: fields.length + 1,
+                    title: '',
+                  })
+                }
+              >
+                Dodaj przystanek
+              </Button>
+            </Box>
+
+            <Stack spacing={2}>
+              {fields.map((field, index) => (
+                <Paper key={field.id} variant='outlined' sx={{ p: 2 }}>
+                  <Stack direction='row' spacing={2} alignItems='center'>
+                    <Typography variant='body2' sx={{ fontWeight: 'bold' }}>
+                      #{index + 1}
+                    </Typography>
+                    <TextField
+                      {...register(`routePoints.${index}.title`)}
+                      label='Nazwa przystanku'
+                      size='small'
+                      fullWidth
+                    />
+                    <TextField
+                      {...register(`routePoints.${index}.latitude`, { setValueAs: parseOptionalNumber })}
+                      label='Lat'
+                      type='text'
+                      size='small'
+                    />
+                    <TextField
+                      {...register(`routePoints.${index}.longitude`, { setValueAs: parseOptionalNumber })}
+                      label='Lng'
+                      type='text'
+                      size='small'
+                    />
+                    <IconButton
+                      color='error'
+                      onClick={() => remove(index)}
+                      size='small'
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Box>
+
           <Button
-            {...safeSaveButtonProps} // Przekazujemy bezpieczny, oczyszczony obiekt
+            {...safeSaveButtonProps}
             variant='contained'
             size='large'
             type='submit'

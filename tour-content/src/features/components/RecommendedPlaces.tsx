@@ -26,7 +26,7 @@ export const RecommendedPlaces: React.FC = () => (
         <section className="adventure-recommendations">
                 <div className="adventure-recommendations__header">
                     <h2 className="adventure-recommendations__title">
-                        Miejsca, które uważamy za niezwykłe
+                        Zobacz niezwykłe miejsca
                     </h2>
                     <p className="adventure-recommendations__subtitle">
                     Wyselekcjonowane punkty na mapie, które zmieniają zwykłą podróż w legendę.
