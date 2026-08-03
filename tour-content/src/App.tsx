@@ -11,7 +11,7 @@ import {
   ErrorComponent,
   RefineThemes,
 } from '@refinedev/mui';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { ThemeProvider, createTheme, CssBaseline, Box } from '@mui/material';
 import routerProvider, {
   UnsavedChangesNotifier,
   CatchAllNavigate,
@@ -92,19 +92,33 @@ function App() {
             <Routes>
               {/* SEKCJA KLIENCKA - Publiczna, dostępna bez logowania */}
               <Route
-                element={
-                  <>
-                    <Header />
-                    <Outlet />
-                  </>
-                }
-              >
-                <Route path='/' element={<LandingPage />} />
-                <Route path='/explore' element={<ExplorePage />} /> 
-                <Route path='/:slug' element={<PlacePage />} />
-                <Route path='/planner' element={<PlannerPage />} />
-                <Route path='/checkout' element={<CheckoutPage />} />
-              </Route>
+  element={
+    <>
+      <Header variant="home" />
+      <Outlet />
+    </>
+  }
+>
+  <Route path='/' element={<LandingPage />} />
+</Route>
+
+{/* SEKCJA KLIENCKA - STRONY STATYCZNE (Stały Header + odstęp od góry) */}
+<Route
+  element={
+    <>
+      <Header variant="static" />
+      {/* Margines górny odpowiadający standardowej wysokości paska (ok. 64px) z MUI */}
+      <Box component="main" sx={{ pt: { xs: 7, sm: 8 } }}>
+        <Outlet />
+      </Box>
+    </>
+  }
+>
+  <Route path='/explore' element={<ExplorePage />} /> 
+  <Route path='/:slug' element={<PlacePage />} />
+  <Route path='/planner' element={<PlannerPage />} />
+  <Route path='/checkout' element={<CheckoutPage />} />
+</Route>
 
               {/* STRONA LOGOWANIA */}
               <Route
