@@ -20,7 +20,7 @@ import AddIcon from '@mui/icons-material/Add';
 import axios from 'axios';
 import { resolveImageUrl } from '../../../utils/imageUrl';
 
-interface RoutePointInput {
+export interface RoutePointInput {
   id?: number;
   latitude: number;
   longitude: number;
@@ -28,7 +28,7 @@ interface RoutePointInput {
   title?: string;
 }
 
-interface ProductFormInputs {
+export interface ProductFormInputs {
   id?: number;
   name: string;
   slug?: string;

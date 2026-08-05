@@ -1,5 +1,4 @@
 // tour-content/src/pages/ExplorePage.tsx
-import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -30,6 +29,12 @@ const MOCK_OFFERS: TourOfferMapItem[] = [
     price: 3499,
     coordinates: { lat: 34.0522, lng: -118.2437 },
   },
+  {
+    id: '4',
+    title: 'California Dreamin',
+    price: 3499,
+    coordinates: { lat: 41.0522, lng: -118.2437 },
+  },
 ];
 
 // Mockowane dane dla tras pomiędzy punktami
@@ -40,6 +45,7 @@ const MOCK_ROUTES: TourRoute[] = [
       [41.8781, -87.6298], // Chicago
       [36.1699, -115.1398], // Las Vegas
       [34.0522, -118.2437], // Los Angeles
+      [41.0522, -118.2437],
     ],
     color: '#d49800',
   },

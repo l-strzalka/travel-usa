@@ -4,7 +4,6 @@ import { PlacePageSkeleton } from './ui/PlacePageSkeleton';
 import { useProductQuery } from './api/useProductQuery';
 import { transformProductData } from './utils/transformProductData';
 
-
 import {
   Box,
   Container,
@@ -35,6 +34,8 @@ import {
   ArrowBack as ArrowBackIcon,
 } from '@mui/icons-material';
 
+import { ExploreMap } from '../ExploreMap/ExploreMap';
+
 export const PlacePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -48,14 +49,25 @@ export const PlacePage = () => {
     setActiveTab(newValue);
   };
 
+   const formattedRoutes = useMemo(() => {
+    if (!offerData?.routePoints?.length) return [];
+
+    return [
+      {
+        id: `route-${offerData.id || 'main'}`,
+        path: offerData.routePoints.map(
+          (point) => [point.latitude, point.longitude] as [number, number],
+        ),
+      },
+    ];
+  }, [offerData?.id, offerData?.routePoints]);
+
   const scrollToSection = (idSection: string) => {
     const element = document.getElementById(idSection);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
-
-
 
   // 1. Stan ładowania z przygotowanym widokiem Skeleton
   if (isLoading) {
@@ -83,6 +95,10 @@ export const PlacePage = () => {
       </Container>
     );
   }
+
+  // Zabezpieczona memoizacja trasy w PlacePage.tsx
+
+ 
 
   return (
     <Box component='main' sx={{ bgcolor: 'background.default', pb: 8 }}>
@@ -151,7 +167,7 @@ export const PlacePage = () => {
             <Typography
               variant='h3'
               component='h1'
-              sx={{ fontWeight: 700, mb: 2, }}
+              sx={{ fontWeight: 700, mb: 2 }}
             >
               {product ? product.name : ''}
             </Typography>
@@ -216,10 +232,10 @@ export const PlacePage = () => {
               '& .MuiTabs-flexContainer': {
                 justifyContent: 'space-between',
                 p: 2,
-            '& .MuiButtonBase-root': {
-                fontSize: 16,
-                fontWeight: 700
-            }
+                '& .MuiButtonBase-root': {
+                  fontSize: 16,
+                  fontWeight: 700,
+                },
               },
             }}
           >
@@ -238,27 +254,31 @@ export const PlacePage = () => {
       </Paper>
 
       {/* GLOWNA ZAWARTOSC */}
-      <Container maxWidth='xl' sx={{ mt: 6, }}>
+      <Container maxWidth='xl' sx={{ mt: 6 }}>
         {/* OPIS I HIGHLIGHTS */}
         <Box
           id='opis-podrozy'
           component='section'
-          sx={{ mb: 8, scrollMarginTop: '80px', mx:3}}
+          sx={{ mb: 8, scrollMarginTop: '80px', mx: 3 }}
         >
           <Grid2 container spacing={12}>
             <Grid2 size={{ xs: 12, md: 6, lg: 7 }}>
-              <Typography 
+              <Typography
                 variant='h4'
                 component='h2'
-                sx={{ fontWeight: 700, mb: 3, textAlign: 'left'}}
+                sx={{ fontWeight: 700, mb: 3, textAlign: 'left' }}
               >
-                {product ? product.name: ''}
+                {product ? product.name : ''}
               </Typography>
               <Typography
                 variant='body1'
                 color='text.secondary'
                 paragraph
-                sx={{ lineHeight: 1.8, whitespace: 'pre-line', textAlign: 'left' }}
+                sx={{
+                  lineHeight: 1.8,
+                  whitespace: 'pre-line',
+                  textAlign: 'left',
+                }}
               >
                 {product ? product.description : ''}
               </Typography>
@@ -266,7 +286,7 @@ export const PlacePage = () => {
               <Typography
                 variant='h5'
                 component='h3'
-                sx={{ fontWeight: 600, mt: 8, mb: 2, textAlign: 'left'}}
+                sx={{ fontWeight: 600, mt: 8, mb: 2, textAlign: 'left' }}
               >
                 Największe atrakcje tej podróży
               </Typography>
@@ -424,10 +444,11 @@ export const PlacePage = () => {
             </Box>
 
             {offerData.routePoints.length > 0 && (
-              <Box sx={{ mt: 2 }}>
+              <Box sx={{ mt: 2, p: 3 }}>
                 <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2 }}>
-                  Punkty trasy zasilone z serwera:
+                  Trasa Wycieczki
                 </Typography>
+                <ExploreMap routes={formattedRoutes} />
                 <Grid container spacing={2}>
                   {offerData.routePoints.map((point, index) => (
                     <Grid item xs={12} sm={6} md={4} key={point.id || index}>
