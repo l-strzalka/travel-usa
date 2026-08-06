@@ -448,7 +448,10 @@ export const PlacePage = () => {
                 <Typography variant='subtitle1' sx={{ fontWeight: 600, mb: 2 }}>
                   Trasa Wycieczki
                 </Typography>
-                <ExploreMap routes={formattedRoutes} />
+                <ExploreMap
+                  routes={formattedRoutes}
+                  stepTitles={offerData.tripPlan.map((step) => step.title)}
+                />
                 <Grid container spacing={2}>
                   {offerData.routePoints.map((point, index) => (
                     <Grid item xs={12} sm={6} md={4} key={point.id || index}>

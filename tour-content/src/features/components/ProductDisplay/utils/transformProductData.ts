@@ -19,7 +19,7 @@ export const transformProductData = (
   const mappedTripPlan =
     sortedRoutePoints.length > 0
       ? sortedRoutePoints.map((point, index) => ({
-          dayLabel: `Dzień ${index + 1}`,
+          dayLabel: `Etap ${index + 1}`,
           title: point.title || `Przystanek ${index + 1}`,
           description: [
             `Szerokość GPS: ${point.latitude}, Długość GPS: ${point.longitude}`,

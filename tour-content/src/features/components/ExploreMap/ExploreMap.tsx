@@ -15,18 +15,16 @@ import {
   useMap,
 } from 'react-leaflet';
 import L from 'leaflet';
-import { Box, Paper, Typography, Skeleton, Stepper, Step, StepLabel } from '@mui/material';
+import { Box, Paper, Typography, Skeleton } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MapIcon from '@mui/icons-material/Map';
 import { DynamicViewController } from './DynamicViewController';
 import 'leaflet/dist/leaflet.css';
-import { ProductFormInputs } from '@/admin-panel/resources/products/create';
 
 // Naprawa ikon Leaflet dla środowiska Vite
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-import { useNavigate } from 'react-router-dom';
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })
   ._getIconUrl;
@@ -40,6 +38,7 @@ export interface RouteItem {
   id: string;
   path: [number, number][];
   color?: string;
+  name?: string;
 }
 
 export interface ExploreMapProps {
@@ -48,33 +47,8 @@ export interface ExploreMapProps {
   height?: number | string;
   customCenter?: [number, number] | null;
   customZoom?: number | null;
+  stepTitles?: string[];
 }
-
-export const RoutePointsStepper = ({ formValues }: { formValues: ProductFormInputs }) => {
-  // Wywołujemy Twoją funkcję, aby pobrać sformatowane dane
-  const { routePoints: points } = routePoints(formValues);
-
-  if (!points || points.length === 0) {
-    return <Typography>Brak punktów trasy</Typography>;
-  }
-
-  return (
-    <Box sx={{ width: '100%', py: 2 }}>
-      {/* activeStep={-1} sprawia, że żaden krok nie jest zaznaczony jako "w trakcie" */}
-      <Stepper activeStep={-1} orientation="vertical">
-        {points.map((point, index) => (
-          <Step key={index} expanded>
-            <StepLabel>
-              <Typography variant="body1" fontWeight="medium">
-                {point.title || 'Bez nazwy'}
-              </Typography>
-            </StepLabel>
-          </Step>
-        ))}
-      </Stepper>
-    </Box>
-  );
-};
 
 /**
  * Wewnętrzny komponent zarządzający zachowaniem scrolla i klawisza Ctrl/Cmd
@@ -130,9 +104,9 @@ export const ExploreMap: React.FC<ExploreMapProps> = ({
   height = 450,
   customCenter = null,
   customZoom = null,
+  stepTitles = [],
 }) => {
   const mapRef = useRef<L.Map | null>(null);
-  const navigate = useNavigate();
   const [showCtrlMessage, setShowCtrlMessage] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -275,7 +249,7 @@ export const ExploreMap: React.FC<ExploreMapProps> = ({
             key={route.id}
             positions={route.path}
             pathOptions={{
-              color: route.color || '#d49800',
+              color: route.color || '#d40000',
               weight: 4,
               opacity: 0.85,
               dashArray: '6, 8',
@@ -284,22 +258,25 @@ export const ExploreMap: React.FC<ExploreMapProps> = ({
         ))}
 
         {/* Punkty przesiadkowe/przystanki */}
-        {allPositions.map((pos, index) => (
-          <Marker key={`marker-${index}`} position={pos}>
-            <Popup>
-              <Typography
-                variant='subtitle2'
-                sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-              >
-                <LocationOnIcon fontSize='small' color='primary' />
-          {`${RoutePointsStepper}`}Przystanek #{index + 1}
-              </Typography>
-              <Typography variant='caption' color='text.secondary'>
-                {pos[0].toFixed(4)}, {pos[1].toFixed(4)}
-              </Typography>
-            </Popup>
-          </Marker>
-        ))}
+        {allPositions.map((pos, index) => {
+          const popupTitle = stepTitles[index] ;
+
+          return (
+            <Marker key={`marker-${index}`} position={pos}>
+              <Popup>
+                <Typography
+                  variant='subtitle2'
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 'bold' }}
+                >
+                  <LocationOnIcon fontSize='small' color='primary'
+                  />
+                  Przystanek {index + 1 + ': ' + popupTitle } 
+                </Typography>
+               
+              </Popup>
+            </Marker>
+          );
+        })}
 
         {/* KONTROLER AUTO-FIT BOUNDS */}
         <DynamicViewController
