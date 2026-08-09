@@ -1,14 +1,14 @@
 import React, { memo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Container, 
-  Grid, 
-  Box, 
-  Typography, 
-  Card, 
-  CardMedia, 
-  CardContent, 
-  CardActionArea 
+import { useNavigate, Link } from 'react-router-dom';
+import {
+  Container,
+  Grid,
+  Box,
+  Typography,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActionArea,
 } from '@mui/material';
 import MapPinIcon from '@mui/icons-material/LocationOn';
 import { useFeaturedTours } from '../../hooks/useFeaturedTours';
@@ -28,99 +28,219 @@ export const FeaturedTours: React.FC = memo(() => {
   }
 
   return (
-    <Box component="section" sx={{ py: 8, bgcolor: '#ffffff' }}>
-      <Container maxWidth="lg">
+    <Box component='section' sx={{ padding: '0 50px', bgcolor: '#ffffff' }}>
+      <Container maxWidth='xl'>
         {/* Nagłówek H2 zgodnie z wymaganiami */}
-        <Typography 
-          variant="h4" 
-          component="h2" 
-          sx={{ 
-            fontWeight: 800, 
-            color: 'text.primary', 
-            mb: 5, 
+        <Typography
+          variant='h4'
+          component='h2'
+          sx={{
+            fontWeight: 800,
+            color: 'text.primary',
+            mb: 5,
             letterSpacing: '-0.02em',
             position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              bottom: -12,
-              left: 0,
-              width: 60,
-              height: 4,
-              bgcolor: 'primary.main',
-              borderRadius: 2
-            }
           }}
         >
           Polecane Kierunki Wypraw
         </Typography>
 
-        {/* Siatka 2 kolumny x 2 wiersze */}
-        <Grid container spacing={4}>
+        {/* Siatka 1 kolumny x 1 wiersze */}
+        <Grid container spacing={4} sx={{ py: 4 }}>
           {tours.map((tour) => (
-            <Grid item xs={12} md={6} key={tour.id}>
-              <Card 
+            <Grid
+              item
+              xs={12}
+              key={tour.id}
+              sx={{ px: '0 !important', py: '2px!important' }}
+            >
+              <Card
                 elevation={0}
-                sx={{ 
-                  borderRadius: 5, 
-                  border: '1px solid', 
+                sx={{
+                  height: '100%',
+                  borderRadius: 0,
+                  border: '1px solid',
                   borderColor: 'grey.100',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-6px)',
-                    boxShadow: '0 12px 24px -10px rgba(0,0,0,0.08)'
-                  }
+                  position: 'relative', // Kluczowe dla pozycjonowania nakładki
+                  overflow: 'hidden', // Zapobiega wystawaniu nakładki poza krawędzie
+                  // Gdy najedziemy na kartę, aktywujemy nakładkę po jej klasie
+                  '&:hover .card-overlay': {
+                    opacity: 1,
+                  },
                 }}
               >
-                <CardActionArea onClick={() => navigate(`${tour.slug}`)}>
-                  {/* Miniatura zdjęcia */}
-                  <Box sx={{ position: 'relative', height: 240, bgcolor: 'grey.100' }}>
+                <CardActionArea
+                  component={Link}
+                  to={tour.slug}
+                  sx={{
+                    display: 'flex',
+                    /* Pionowo na telefonach, poziomo od ekranów sm/md */
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'stretch',
+                    height: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {/* Kontener na zdjęcie - responsywny i stały w rzędzie */}
+                  <Box
+                    sx={{
+                      position: 'relative',
+                      height: { xs: 220, sm: 'auto', lg: 360 },
+                      width: {
+                        xs: '100%',
+                        sm: '500px',
+                        lg: '900px',
+                      } /* Stała, elegancka szerokość na desktopie */,
+                      flexShrink: 0 /* Zapobiega ściskaniu zdjęcia przez długi tekst */,
+                    }}
+                  >
                     {tour.imageUrl ? (
                       <CardMedia
-                        component="img"
+                        component='img'
                         image={resolveImageUrl(tour.imageUrl)}
                         alt={tour.name}
-                        loading="lazy"
-                        sx={{ height: '100%', width: '100%', objectFit: 'cover', }}
+                        loading='lazy'
+                        sx={{
+                          height: '100%',
+                          width: '100%',
+                          objectFit:
+                            'cover' /* Idealne docięcie bez rozciągania */,
+                        }}
                       />
                     ) : (
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.disabled' }}>
-                        <Typography variant="body2">Brak zdjęcia oferty</Typography>
-                      </Box>
-                    )}
-                  </Box>
-
-                  <CardContent sx={{ p: 3 }}>
-                    {/* Cel podróży */}
-                    {tour.location && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1.5 }}>
-                        <MapPinIcon sx={{ color: 'primary.main', fontSize: 18 }} />
-                        <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                          {tour.location}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '100%',
+                          bgcolor: 'grey.50',
+                          color: 'text.disabled',
+                        }}
+                      >
+                        <Typography variant='body2'>
+                          Brak zdjęcia oferty
                         </Typography>
                       </Box>
                     )}
 
-                    {/* Tytuł */}
-                    <Typography 
-                      variant="h5" 
-                      component="h3" 
-                      sx={{ 
-                        fontWeight: 700, 
-                        mb: 2, 
-                        lineHeight: 1.3,
-                        color: 'text.primary' 
+                    {/* NAKŁADKA PRZYCIEMNIAJĄCA - PRZENIESIONA DO ŚRODKA BOXA ZDJĘCIA */}
+                    <Box
+                      className='card-overlay'
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        bgcolor: 'rgba(0, 0, 0, 0.45)', // Stopień przyciemnienia
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: 0, // Domyślnie ukryta
+                        transition: 'opacity 0.3s ease',
+                        zIndex: 2,
                       }}
                     >
-                      {tour.name}
-                    </Typography>
+                      {/* RAMKA "ZOBACZ" */}
+                      <Box
+                        component='span'
+                        sx={{
+                          px: 3,
+                          py: 1,
+                          border: '2px solid',
+                          borderColor: '#ffffff',
+                          color: '#ffffff',
+                          fontWeight: 700,
+                          fontSize: '0.875rem',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          bgcolor: 'transparent',
+                          transition:
+                            'background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease',
+                          '&:hover': {
+                            bgcolor: 'primary.main', // Zmiana tła przy najechaniu bezpośrednio na "Zobacz"
+                            borderColor: 'primary.main',
+                            color: '#ffffff',
+                          },
+                        }}
+                      >
+                        Zobacz
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* Treść karty */}
+                  <CardContent
+                    sx={{
+                      p: 3,
+                      flexGrow: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <Box>
+                      {/* Cel podróży */}
+                      {tour.location && (
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            mb: 1.5,
+                          }}
+                        >
+                          <MapPinIcon
+                            sx={{ color: 'primary.main', fontSize: 18 }}
+                          />
+                          <Typography
+                            variant='subtitle2'
+                            sx={{ color: 'text.secondary', fontWeight: 600 }}
+                          >
+                            {tour.location}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {/* Tytuł */}
+                      <Typography
+                        variant='h5'
+                        component='h3'
+                        sx={{
+                          fontWeight: 700,
+                          mb: 2,
+                          lineHeight: 1.3,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {tour.name}
+                      </Typography>
+                    </Box>
 
                     {/* Cena */}
-                    <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        justifyContent: 'space-between',
+                        mt: 2,
+                      }}
+                    >
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: 'text.disabled',
+                          textTransform: 'uppercase',
+                          fontWeight: 'bold',
+                        }}
+                      >
                         Cena od
                       </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                      <Typography
+                        variant='h6'
+                        sx={{ fontWeight: 800, color: 'primary.main' }}
+                      >
                         {tour.price.toLocaleString()} PLN
                       </Typography>
                     </Box>
