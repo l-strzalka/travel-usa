@@ -1,4 +1,3 @@
-
 import './app.scss';
 import './sass/main.scss';
 import { Routes, Route, Outlet, Navigate } from 'react-router-dom';
@@ -29,6 +28,7 @@ import { ExplorePage } from './pages/ExplorePage';
 import { PlannerPage } from './pages/PlannerPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { Header } from './features/components/Header';
+import { Footer } from './features/components/Footer';
 import { Login } from './pages/Login';
 // Strony Administratora
 import {
@@ -55,7 +55,7 @@ axiosInstance.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 const theme = createTheme(RefineThemes.Blue);
@@ -92,33 +92,35 @@ function App() {
             <Routes>
               {/* SEKCJA KLIENCKA - Publiczna, dostępna bez logowania */}
               <Route
-  element={
-    <>
-      <Header variant="home" />
-      <Outlet />
-    </>
-  }
->
-  <Route path='/' element={<LandingPage />} />
-</Route>
+                element={
+                  <>
+                    <Header variant='home' />
+                    <Outlet />
+                    <Footer />
+                  </>
+                }
+              >
+                <Route path='/' element={<LandingPage />} />
+              </Route>
 
-{/* SEKCJA KLIENCKA - STRONY STATYCZNE (Stały Header + odstęp od góry) */}
-<Route
-  element={
-    <>
-      <Header variant="static" />
-      {/* Margines górny odpowiadający standardowej wysokości paska (ok. 64px) z MUI */}
-      <Box component="main" sx={{ pt: { xs: 7, sm: 8 } }}>
-        <Outlet />
-      </Box>
-    </>
-  }
->
-  <Route path='/explore' element={<ExplorePage />} /> 
-  <Route path='/:slug' element={<PlacePage />} />
-  <Route path='/planner' element={<PlannerPage />} />
-  <Route path='/checkout' element={<CheckoutPage />} />
-</Route>
+              {/* SEKCJA KLIENCKA - STRONY STATYCZNE (Stały Header + odstęp od góry) */}
+              <Route
+                element={
+                  <>
+                    <Header variant='static' />
+                    {/* Margines górny odpowiadający standardowej wysokości paska (ok. 64px) z MUI */}
+                    <Box component='main' sx={{ pt: { xs: 7, sm: 8 } }}>
+                      <Outlet />
+                    </Box>
+                    <Footer />
+                  </>
+                }
+              >
+                <Route path='/explore' element={<ExplorePage />} />
+                <Route path='/:slug' element={<PlacePage />} />
+                <Route path='/planner' element={<PlannerPage />} />
+                <Route path='/checkout' element={<CheckoutPage />} />
+              </Route>
 
               {/* STRONA LOGOWANIA */}
               <Route

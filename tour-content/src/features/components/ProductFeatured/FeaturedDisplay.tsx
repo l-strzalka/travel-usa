@@ -85,11 +85,11 @@ export const FeaturedTours: React.FC = memo(() => {
                   <Box
                     sx={{
                       position: 'relative',
-                      height: { xs: 220, sm: 'auto', lg: 360 },
+                      height: { xs: 220, sm: 'auto', lg: 340 },
                       width: {
                         xs: '100%',
                         sm: '500px',
-                        lg: '900px',
+                        lg: '840px',
                       } /* Stała, elegancka szerokość na desktopie */,
                       flexShrink: 0 /* Zapobiega ściskaniu zdjęcia przez długi tekst */,
                     }}
@@ -146,13 +146,13 @@ export const FeaturedTours: React.FC = memo(() => {
                       <Box
                         component='span'
                         sx={{
-                          px: 3,
-                          py: 1,
-                          border: '2px solid',
+                          px: 4,
+                          py: 2,
+                          border: '1px solid',
                           borderColor: '#ffffff',
                           color: '#ffffff',
-                          fontWeight: 700,
-                          fontSize: '0.875rem',
+                          fontWeight: 200,
+                          fontSize: '0.775rem',
                           textTransform: 'uppercase',
                           letterSpacing: '0.1em',
                           bgcolor: 'transparent',
@@ -181,12 +181,27 @@ export const FeaturedTours: React.FC = memo(() => {
                     }}
                   >
                     <Box>
-                      {/* Cel podróży */}
+                      {/* Tytuł */}
+                      <Typography
+                        variant='h5'
+                        component='h3'
+                        sx={{
+                          fontWeight: 700,
+                          mb: 2,
+                          lineHeight: 1.3,
+                          color: 'text.primary',
+                        }}
+                      >
+                        {tour.name}
+                      </Typography>
+                      
+                       {/* Cel podróży */}
                       {tour.location && (
                         <Box
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             gap: 0.5,
                             mb: 1.5,
                           }}
@@ -202,20 +217,6 @@ export const FeaturedTours: React.FC = memo(() => {
                           </Typography>
                         </Box>
                       )}
-
-                      {/* Tytuł */}
-                      <Typography
-                        variant='h5'
-                        component='h3'
-                        sx={{
-                          fontWeight: 700,
-                          mb: 2,
-                          lineHeight: 1.3,
-                          color: 'text.primary',
-                        }}
-                      >
-                        {tour.name}
-                      </Typography>
                     </Box>
 
                     {/* Cena */}

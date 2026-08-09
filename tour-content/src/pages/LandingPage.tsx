@@ -5,12 +5,13 @@ import { RecommendedPlaces } from "../features/components/RecommendedPlaces"
 import { FeaturedTours } from '@/features/components/ProductFeatured/FeaturedDisplay'
 
 
+
 export const LandingPage = () => ( 
     <>
       <Hero/>
       <RecommendedPlaces />
       <FeaturedTours />
-       
+    
     </>
 
 )
