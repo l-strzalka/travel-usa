@@ -38,6 +38,7 @@ import {
 } from './admin-panel/resources/products';
 
 import { API_URL, FRONTEND_URL } from './config';
+import { ScrollToTop } from './features/components/ScrollToTop';
 
 export { API_URL, FRONTEND_URL };
 
@@ -63,6 +64,7 @@ const theme = createTheme(RefineThemes.Blue);
 function App() {
   return (
     <ThemeProvider theme={theme}>
+      <ScrollToTop/>
       <CssBaseline />
 
       <RefineSnackbarProvider>

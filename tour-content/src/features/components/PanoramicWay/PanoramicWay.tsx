@@ -82,7 +82,8 @@ export const PanoramicWay = () => {
                         <div className="panoramic__item"
                              key={element.id}
                              style={{
-                                position: 'relative'
+                                position: 'relative',
+                                height: 490
                              }}
                         >
                             <img 
@@ -92,7 +93,6 @@ export const PanoramicWay = () => {
                                 height={imageHeight}
                                 style={{
                                     objectFit: 'cover',
-                                    borderRadius: '12px',
                                     boxShadow: '0 10px 30px rgba(0,0,0,0.15)'
                                 }}
                             /> 

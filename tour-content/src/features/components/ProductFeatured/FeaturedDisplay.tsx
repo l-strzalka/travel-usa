@@ -35,14 +35,23 @@ export const FeaturedTours: React.FC = memo(() => {
           variant='h4'
           component='h2'
           sx={{
-            fontWeight: 800,
+            fontWeight: 600,
+            fontSize: 40,
             color: 'text.primary',
-            mb: 5,
+            mt: 5,
+            mb: 2,
             letterSpacing: '-0.02em',
             position: 'relative',
           }}
         >
           Polecane Kierunki Wypraw
+        </Typography>
+        <Typography
+          variant='h6'
+          component='h3'
+          sx={{ mb: 5, fontSize: 17.6, color: '#666' }}
+        >
+          Perfekcyjne dopracowane kierunki wypraw
         </Typography>
 
         {/* Siatka 1 kolumny x 1 wiersze */}
@@ -194,8 +203,8 @@ export const FeaturedTours: React.FC = memo(() => {
                       >
                         {tour.name}
                       </Typography>
-                      
-                       {/* Cel podróży */}
+
+                      {/* Cel podróży */}
                       {tour.location && (
                         <Box
                           sx={{

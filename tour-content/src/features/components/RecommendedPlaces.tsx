@@ -3,7 +3,7 @@ import { PanoramicWay} from "./PanoramicWay/PanoramicWay";
 
 
 
-export const RecommendedPlaces: React.FC = () => (
+export const RecommendedPlaces = () => (
 
     <main>
         <section className="adventure-discovery">
