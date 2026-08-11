@@ -64,7 +64,7 @@ const theme = createTheme(RefineThemes.Blue);
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <ScrollToTop/>
+      <ScrollToTop />
       <CssBaseline />
 
       <RefineSnackbarProvider>

@@ -49,6 +49,8 @@ export const PlacePage = () => {
     setActiveTab(newValue);
   };
 
+   // Zabezpieczona memoizacja trasy w PlacePage.tsx
+
    const formattedRoutes = useMemo(() => {
     if (!offerData?.routePoints?.length) return [];
 
@@ -94,11 +96,7 @@ export const PlacePage = () => {
         </Box>
       </Container>
     );
-  }
-
-  // Zabezpieczona memoizacja trasy w PlacePage.tsx
-
- 
+  } 
 
   return (
     <Box component='main' sx={{ bgcolor: 'background.default', pb: 8 }}>
