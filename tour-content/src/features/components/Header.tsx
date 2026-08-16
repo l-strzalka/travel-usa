@@ -16,6 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import '../../sass/main.scss';
 import { Slide } from '@mui/material';
+import React from 'react';
 
 export interface HeaderProps {
   /**
@@ -32,10 +33,10 @@ const NAV_ITEMS = [
   { label: 'Zaloguj', path: '/login' },
 ];
 
-export const Header = ({ variant = 'home' }: HeaderProps) => {
+export const Header = React.memo(({ variant = 'home' }: HeaderProps) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const location = useLocation();
+const location = useLocation();
 
   // MUI Hook wykrywający skrolowanie (uruchamia się po 20px)
 
@@ -225,4 +226,6 @@ export const Header = ({ variant = 'home' }: HeaderProps) => {
       </Drawer>
     </>
   );
-};
+},
+(prevProps, nextProps) => prevProps.variant === nextProps.variant
+);

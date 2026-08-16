@@ -1,11 +1,20 @@
 export interface ExploreProduct {
-  id: string | number;
+  id: number;
   name: string;
   slug: string;
-  location?: string;
+  description?: string;
   price: number;
   imageUrl?: string;
-  description?: string;
+  location?: string;
+}
+
+export interface ExploreFilters {
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  location?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedExploreProductsResponse {
@@ -14,7 +23,7 @@ export interface PaginatedExploreProductsResponse {
   total: number;
 }
 
-export interface FetchExploreProductsParams {
+export interface FetchExploreProductsParams extends ExploreFilters {
   page?: number;
   limit?: number;
 }

@@ -6,28 +6,84 @@ import {
   Button,
   CircularProgress,
   Alert,
+  LinearProgress,
 } from '@mui/material';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useInfiniteExploreTours } from '@/features/hooks/useInfiniteExploreTours';
 import { ExploreProductCard } from './ExploreProductCard';
 import { ExploreArchiveSkeleton } from './ExploreArchiveSkeleton';
+import { CatalogFilterBar } from './CatalogFilterBar';
+import { ExploreFilters } from '../types/explore.types';
 
 export const ExploreArchive = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // 1. Odczyt filtrów z adresu URL
+  const filters: ExploreFilters = useMemo(() => {
+    const search = searchParams.get('search') || undefined;
+    const minPriceParam = searchParams.get('minPrice');
+    const maxPriceParam = searchParams.get('maxPrice');
+    const sortBy = searchParams.get('sortBy') || undefined;
+    const sortOrderParam = searchParams.get('sortOrder');
+    const location = searchParams.get('location') || undefined;
+
+    return {
+      search,
+      minPrice: minPriceParam !== null ? Number(minPriceParam) : undefined,
+      maxPrice: maxPriceParam !== null ? Number(maxPriceParam) : undefined,
+      sortBy,
+      sortOrder: (sortOrderParam as 'asc' | 'desc') || undefined,
+      location,
+    };
+  }, [searchParams]);
+
+  // 2. Pobieranie danych
+  // - isLoading: PRAWDA tylko przy pierwszym ładowaniu (brak jakichkolwiek danych)
+  // - isFetching: PRAWDA przy każdym zapytaniu w tle (np.zmiana filtrów, kolejna strona)
+  // - isPlaceholderData: PRAWDA, gdy na ekranie widzimy stare wyniki podczas ładowania nowych
   const {
     data,
     isLoading,
+    isFetching,
+    isPlaceholderData,
     isError,
     error,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteExploreTours({ limit: 4 });
+  } = useInfiniteExploreTours({ limit: 8, filters });
 
-  // Spłaszczenie stron z TanStack Query w jedną listę wycieczek
+  // 3. Obsługa URL i filtrów
+  const handleFilterChange = (newFilters: Partial<ExploreFilters>) => {
+    setSearchParams(
+      (prevParams) => {
+        const updatedParams = new URLSearchParams(prevParams);
+        const mergedFilters = { ...filters, ...newFilters };
+
+        Object.entries(mergedFilters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== '') {
+            updatedParams.set(key, String(value));
+          } else {
+            updatedParams.delete(key);
+          }
+        });
+
+        return updatedParams;
+      },
+      { replace: true }
+    );
+  };
+
+  const handleResetFilters = () => {
+    setSearchParams({}, { replace: true });
+  };
+
   const allProducts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <Box component="section" sx={{ pb: 8, bgcolor: 'background.default' }}>
-      {/* 1. BANNER NA GÓRZE - Szerokie zdjęcie z sekcją pod przyszły szukaj */}
+      {/* BANNER GŁÓWNY */}
       <Box
         sx={{
           position: 'relative',
@@ -68,7 +124,6 @@ export const ExploreArchive = () => {
             Przeglądaj najnowsze oferty i znajdź podróż swoich marzeń
           </Typography>
 
-          {/* MIEJSCE NA FORMULARZ WYSZUKIWARKI (Zostanie zaimplementowane w przyszłości) */}
           <Box
             id="search-form-placeholder"
             sx={{
@@ -81,38 +136,62 @@ export const ExploreArchive = () => {
               maxWidth: 600,
             }}
           >
-            <Typography variant="body2" sx={{ fontStyle: 'italic', opacity: 0.8 }}>
+            <Typography
+              variant="body2"
+              sx={{ fontStyle: 'italic', opacity: 0.8 }}
+            >
               Formularz wyszukiwania (wkrótce)
             </Typography>
           </Box>
         </Container>
       </Box>
 
-      {/* 2. SIATKA Z PRODUKTAMI */}
+      {/* SEKCJA KATALOGU I FILTRÓW */}
       <Container maxWidth="xl">
-        {/* Stan Ładowania Początkowego */}
+        <CatalogFilterBar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+        />
+
+        {/* SUBTELNY PASEK ŁADOWANIA NAD KARTAMI PODCZAS ZMIANY FILTRÓW */}
+        <Box sx={{ height: 4, mb: 2, mt: 1, borderRadius: 2, overflow: 'hidden' }}>
+          {isFetching && !isFetchingNextPage && <LinearProgress />}
+        </Box>
+
+        {/* 1. SKELETON: Pokazuje się TYLKO przy pierwszym ładowaniu aplikacji */}
         {isLoading && <ExploreArchiveSkeleton count={8} />}
 
-        {/* Stan Błędu */}
+        {/* 2. BŁĄD */}
         {isError && (
           <Alert severity="error" sx={{ my: 4 }}>
-            Nie udało się załadować ofert: {error?.message || 'Błąd połączenia z serwerem.'}
+            Nie udało się załadować ofert:{' '}
+            {error?.message || 'Błąd połączenia z serwerem.'}
           </Alert>
         )}
 
-        {/* Stan Pusty (Brak wycieczek) */}
+        {/* 3. BRAK WYNIKÓW */}
         {!isLoading && !isError && allProducts.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="text.secondary">
-              Brak dostępnych ofert do wyświetlenia.
+              Brak dostępnych ofert spełniających kryteria wyszukiwania.
             </Typography>
           </Box>
         )}
 
-        {/* Renderowanie Siatki: 4 kolumny (lg=3), 2 kolumny (sm=6), 1 kolumna (xs=12) */}
+        {/* 4. LISTA PRODUKTÓW Z EFEKTEM PRZYCIEMNIENIA */}
         {!isLoading && allProducts.length > 0 && (
           <>
-            <Grid container spacing={3}>
+            <Grid
+              container
+              spacing={3}
+              sx={{
+                // Przyciemnia karty i dodaje łagodne przejście przy pobieraniu nowych filtrów
+                opacity: isPlaceholderData ? 0.5 : 1,
+                transition: 'opacity 0.25s ease-in-out',
+                pointerEvents: isPlaceholderData ? 'none' : 'auto',
+              }}
+            >
               {allProducts.map((product, idx) => (
                 <Grid item xs={12} sm={6} lg={3} key={`${product.id}-${idx}`}>
                   <ExploreProductCard product={product} />
@@ -120,14 +199,14 @@ export const ExploreArchive = () => {
               ))}
             </Grid>
 
-            {/* 3. PRZYCISK ZAŁADUJ WIĘCEJ */}
+            {/* PRZYCISK "ZAŁADUJ WIĘCEJ" */}
             {hasNextPage && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
                 <Button
                   variant="contained"
                   size="large"
                   onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
+                  disabled={isFetchingNextPage || isPlaceholderData}
                   sx={{
                     px: 5,
                     py: 1.5,
@@ -139,7 +218,11 @@ export const ExploreArchive = () => {
                 >
                   {isFetchingNextPage ? (
                     <>
-                      <CircularProgress size={20} color="inherit" sx={{ mr: 1.5 }} />
+                      <CircularProgress
+                        size={20}
+                        color="inherit"
+                        sx={{ mr: 1.5 }}
+                      />
                       Ładowanie...
                     </>
                   ) : (

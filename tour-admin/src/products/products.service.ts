@@ -1,13 +1,25 @@
+//\tour-admin\src\products\products.service.ts
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Product } from '@prisma/client';
+import { Product, Prisma } from '@prisma/client';
 import { EditProductDto } from './dtos/edit-product.dto';
 import { CreateProductsDto } from './dtos/create-products.dto';
 import slugify from 'slugify';
+
+export interface GetProductsQuery {
+  _start?: number;
+  _end?: number;
+  _sort?: string;
+  _order?: 'asc' | 'desc';
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  location?: string;
+}
 
 @Injectable()
 export class ProductService {
@@ -52,13 +64,19 @@ export class ProductService {
     });
   }
 
-  async getAll(query: {
-    _start?: number;
-    _end?: number;
-    _sort?: string;
-    _order?: 'asc' | 'desc';
-  }): Promise<{ data: Product[]; total: number }> {
-    const { _start, _end, _sort, _order } = query;
+  async getAll(
+    query: GetProductsQuery,
+  ): Promise<{ data: Product[]; total: number }> {
+    const {
+      _start,
+      _end,
+      _sort,
+      _order,
+      search,
+      minPrice,
+      maxPrice,
+      location,
+    } = query;
 
     const skip = _start ? Number(_start) : undefined;
     const take = _end && _start ? Number(_end) - Number(_start) : undefined;
@@ -66,9 +84,29 @@ export class ProductService {
       _order?.toLowerCase() === 'desc' ? 'desc' : 'asc';
     const orderBy = _sort ? { [_sort]: sortOrder } : { id: sortOrder };
 
+    const where: Prisma.ProductWhereInput = {};
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { description: { contains: search } },
+        { location: { contains: search } },
+      ];
+    }
+
+    if (location) {
+      where.location = { contains: location };
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.price = {};
+      if (minPrice !== undefined) where.price.gte = Number(minPrice);
+      if (maxPrice !== undefined) where.price.lte = Number(maxPrice);
+    }
+
     // Wykonujemy zapytania równolegle, oszczędzając zasoby bazy danych
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
+        where,
         skip,
         take,
         orderBy,
@@ -79,7 +117,7 @@ export class ProductService {
           },
         },
       }),
-      this.prisma.product.count(),
+      this.prisma.product.count({ where }),
     ]);
 
     return { data, total };

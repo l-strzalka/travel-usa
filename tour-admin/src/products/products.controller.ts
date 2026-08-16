@@ -33,21 +33,30 @@ export class ProductsController {
       _end?: string;
       _sort?: string;
       _order?: 'asc' | 'desc';
+      search?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      location?: string;
     },
     @Res() res: Response,
   ) {
     const start = query._start ? parseInt(query._start, 10) : undefined;
     const end = query._end ? parseInt(query._end, 10) : undefined;
+    const minPrice = query.minPrice ? parseFloat(query.minPrice) : undefined;
+    const maxPrice = query.maxPrice ? parseFloat(query.maxPrice) : undefined;
 
     const { data, total } = await this.productsService.getAll({
       _start: start,
       _end: end,
       _sort: query._sort,
       _order: query._order,
+      search: query.search,
+      minPrice,
+      maxPrice,
+      location: query.location,
     });
 
     res.setHeader('X-Total-Count', total.toString());
-
     return res.status(HttpStatus.OK).json(data);
   }
 
@@ -81,7 +90,6 @@ export class ProductsController {
     }
     return product;
   }
-
 
   // POST localhost:3000/products
   @UseGuards(AdminGuard)

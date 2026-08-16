@@ -1,13 +1,12 @@
-import React from 'react';
 import { Grid, Skeleton, Card, CardContent, Box } from '@mui/material';
 
 interface ExploreArchiveSkeletonProps {
   count?: number;
 }
 
-export const ExploreArchiveSkeleton: React.FC<ExploreArchiveSkeletonProps> = ({
+export const ExploreArchiveSkeleton = ({
   count = 8,
-}) => {
+}:ExploreArchiveSkeletonProps) => {
   return (
     <Grid container spacing={3}>
       {Array.from({ length: count }).map((_, index) => (
