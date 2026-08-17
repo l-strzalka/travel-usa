@@ -6,7 +6,6 @@ import {
   Button,
   CircularProgress,
   Alert,
-  LinearProgress,
 } from '@mui/material';
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
@@ -15,10 +14,13 @@ import { ExploreProductCard } from './ExploreProductCard';
 import { ExploreArchiveSkeleton } from './ExploreArchiveSkeleton';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { ExploreFilters } from '../types/explore.types';
+import { SearchForm } from '../../SearchForm';
 
 export const ExploreArchive = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
+
+ 
   // 1. Odczyt filtrów z adresu URL
   const filters: ExploreFilters = useMemo(() => {
     const search = searchParams.get('search') || undefined;
@@ -38,14 +40,10 @@ export const ExploreArchive = () => {
     };
   }, [searchParams]);
 
-  // 2. Pobieranie danych
-  // - isLoading: PRAWDA tylko przy pierwszym ładowaniu (brak jakichkolwiek danych)
-  // - isFetching: PRAWDA przy każdym zapytaniu w tle (np.zmiana filtrów, kolejna strona)
-  // - isPlaceholderData: PRAWDA, gdy na ekranie widzimy stare wyniki podczas ładowania nowych
+
   const {
     data,
     isLoading,
-    isFetching,
     isPlaceholderData,
     isError,
     error,
@@ -124,25 +122,10 @@ export const ExploreArchive = () => {
             Przeglądaj najnowsze oferty i znajdź podróż swoich marzeń
           </Typography>
 
-          <Box
-            id="search-form-placeholder"
-            sx={{
-              p: 2,
-              bgcolor: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              display: 'inline-block',
-              width: '100%',
-              maxWidth: 600,
-            }}
-          >
-            <Typography
-              variant="body2"
-              sx={{ fontStyle: 'italic', opacity: 0.8 }}
-            >
-              Formularz wyszukiwania (wkrótce)
-            </Typography>
-          </Box>
+          <SearchForm
+          variant="hero"
+            onSearchSubmit={(newFilters) => handleFilterChange(newFilters)}
+          />
         </Container>
       </Box>
 
@@ -153,11 +136,6 @@ export const ExploreArchive = () => {
           onFilterChange={handleFilterChange}
           onReset={handleResetFilters}
         />
-
-        {/* SUBTELNY PASEK ŁADOWANIA NAD KARTAMI PODCZAS ZMIANY FILTRÓW */}
-        <Box sx={{ height: 4, mb: 2, mt: 1, borderRadius: 2, overflow: 'hidden' }}>
-          {isFetching && !isFetchingNextPage && <LinearProgress />}
-        </Box>
 
         {/* 1. SKELETON: Pokazuje się TYLKO przy pierwszym ładowaniu aplikacji */}
         {isLoading && <ExploreArchiveSkeleton count={8} />}

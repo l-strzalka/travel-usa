@@ -60,6 +60,15 @@ export class ProductsController {
     return res.status(HttpStatus.OK).json(data);
   }
 
+  @Get('suggestions')
+  async getSuggestions(@Query('q') query: string) {
+    if (!query || query.length < 3) {
+      return [];
+    }
+
+    return this.productsService.getSearchSuggestions(query);
+  }
+
   // GET localhost:3000/products/search/name
   // UWAGA: Ta ścieżka musi być wyżej niż /:idOrSlug!
   @Get('search/name')

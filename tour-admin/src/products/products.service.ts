@@ -52,6 +52,26 @@ export class ProductService {
     return slug;
   }
 
+  async getSearchSuggestions(query: string) {
+    const products = await this.prisma.product.findMany({
+      where: {
+        OR: [{ name: { contains: query } }, { location: { contains: query } }],
+      },
+      select: {
+        id: true,
+        name: true,
+        location: true,
+      },
+      take: 10,
+    });
+
+    return products.map((product) => ({
+      id: product.id,
+      label: product.name,
+      category: product.location || 'USA',
+    }));
+  }
+
   async getBySlug(slug: string) {
     return this.prisma.product.findUnique({
       where: { slug },
