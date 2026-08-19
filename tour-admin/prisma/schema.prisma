@@ -3,6 +3,17 @@
 
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum UserStatus {
+  USER
+  ADMIN
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,12 +24,12 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int        @id @default(autoincrement())
+  email     String     @unique
   password  String
   name      String?
-  createdAt DateTime @default(now())
-  status    String
+  createdAt DateTime   @default(now())
+  status    UserStatus @default(USER)
 
   orders Order[]
   plans  PlannerItem[]
@@ -27,60 +38,79 @@ model User {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  slug        String   @unique
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String @unique
+
   description String   @db.Text
-  price       Float
+  price       Decimal  @db.Decimal(10, 2)
   imageUrl    String?
   location    String?
   latitude    Float? // Szerokość geograficzna (GPS)
   longitude   Float? // Długość geograficzna (GPS)
   createdAt   DateTime @default(now())
-  
-  orderItems OrderItem[]
-  planItems  PlannerItem[]
+  categoryId  Int?
+
+  category    Category?     @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  planItems   PlannerItem[]
   routePoints RoutePoint[]
 
+  @@index([categoryId])
   @@map("product")
 }
 
-model RoutePoint {
-  id          Int      @id @default(autoincrement())
-  productId   Int
-  latitude    Float
-  longitude   Float
-  stopOrder   Int      // Kolejność punktu na trasie (np. 1, 2, 3...)
-  title       String?  // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
-  
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
+  @@map("category")
+}
+
+model RoutePoint {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  latitude  Float
+  longitude Float
+  stopOrder Int // Kolejność punktu na trasie (np. 1, 2, 3...)
+  title     String? // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
   @@map("routepoint")
 }
 
 model Order {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   userId      Int
-  totalAmount Float
-  status      String   @default("PENDING") // PENDING, PAID, CANCELLED
-  createdAt   DateTime @default(now())
+  totalAmount Decimal     @db.Decimal(10, 2)
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
 
   user  User        @relation(fields: [userId], references: [id])
   items OrderItem[]
 
+  @@index([userId])
   @@map("order")
 }
 
 model OrderItem {
-  id        Int   @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   orderId   Int
   productId Int
-  quantity  Int   @default(1)
-  price     Float
+  quantity  Int     @default(1)
+  price     Decimal @db.Decimal(10, 2)
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 
+  @@index([orderId])
+  @@index([productId])
   @@map("orderitem")
 }
 
@@ -93,5 +123,7 @@ model PlannerItem {
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 
+  @@index([userId])   
+  @@index([productId])
   @@map("planneritem")
 }

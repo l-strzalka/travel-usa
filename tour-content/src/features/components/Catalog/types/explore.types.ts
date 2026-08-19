@@ -1,3 +1,5 @@
+// \tour-content\src\features\components\Catalog\types\explore.types.ts
+
 export interface ExploreProduct {
   id: number;
   name: string;

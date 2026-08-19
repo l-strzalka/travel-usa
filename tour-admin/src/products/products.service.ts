@@ -19,6 +19,7 @@ export interface GetProductsQuery {
   minPrice?: number;
   maxPrice?: number;
   location?: string;
+  categoryId?: number;
 }
 
 @Injectable()
@@ -52,6 +53,18 @@ export class ProductService {
     return slug;
   }
 
+  async getBySlug(slug: string) {
+    return this.prisma.product.findUnique({
+      where: { slug },
+      // Dołączamy punkty trasy posortowane po kolejności
+      include: {
+        routePoints: {
+          orderBy: { stopOrder: 'asc' },
+        },
+      },
+    });
+  }
+
   async getSearchSuggestions(query: string) {
     const products = await this.prisma.product.findMany({
       where: {
@@ -72,18 +85,6 @@ export class ProductService {
     }));
   }
 
-  async getBySlug(slug: string) {
-    return this.prisma.product.findUnique({
-      where: { slug },
-      // Dołączamy punkty trasy posortowane po kolejności
-      include: {
-        routePoints: {
-          orderBy: { stopOrder: 'asc' },
-        },
-      },
-    });
-  }
-
   async getAll(
     query: GetProductsQuery,
   ): Promise<{ data: Product[]; total: number }> {
@@ -96,6 +97,7 @@ export class ProductService {
       minPrice,
       maxPrice,
       location,
+      categoryId,
     } = query;
 
     const skip = _start ? Number(_start) : undefined;
@@ -105,6 +107,10 @@ export class ProductService {
     const orderBy = _sort ? { [_sort]: sortOrder } : { id: sortOrder };
 
     const where: Prisma.ProductWhereInput = {};
+
+    if (categoryId !== undefined) {
+      where.categoryId = Number(query.categoryId);
+    }
 
     if (search) {
       where.OR = [

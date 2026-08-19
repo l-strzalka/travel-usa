@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { UserStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -35,7 +36,7 @@ export class AuthService {
       email: body.email,
       password: hashedPassword,
       name: body.name || null,
-      status: body.status || 'USER', // Domyślnie USER
+      status: (body.status as UserStatus) || 'USER', // Domyślnie USER
     });
 
     // Zwraca stworzonego użytkownika, ale BEZ hasła dla bezpieczeństwa

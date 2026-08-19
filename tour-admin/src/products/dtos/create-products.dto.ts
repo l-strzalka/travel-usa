@@ -19,6 +19,10 @@ export class RoutePointDto {
   @Type(() => Number)
   id?: number;
 
+  @IsInt()
+  @IsNotEmpty()
+  categoryId?: number;
+
   // Pozwalamy na pole 'productId' (jeśli baza/ORM je zwraca i przesyła)
   @IsOptional()
   @IsInt()
@@ -62,6 +66,10 @@ export class CreateProductsDto {
   @IsString({ message: 'Opis musi być tekstem' })
   @IsNotEmpty({ message: 'Opis nie może być pusty' })
   description!: string;
+
+  @IsInt({ message: 'Kategoria jest wymagana i musi być liczbą całkowitą' })
+  @Type(() => Number)
+  categoryId!: number;
 
   @IsOptional()
   @IsString()

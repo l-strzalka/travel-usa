@@ -27,6 +27,10 @@ export class EditProductDto {
   @IsOptional()
   description?: string;
 
+  @IsNumber()
+  @IsOptional()
+  categoryId?: number;
+
   @IsOptional()
   @IsString()
   imageUrl?: string;

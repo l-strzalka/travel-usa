@@ -1,8 +1,8 @@
-// TravelUSA\tour-content\src\admin-panel\resources\products\edit.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_URL, FRONTEND_URL } from '@/App';
 import { useForm } from '@refinedev/react-hook-form';
+import { useSelect } from '@refinedev/core';
 import { useFieldArray } from 'react-hook-form';
 import {
   Box,
@@ -14,6 +14,11 @@ import {
   CircularProgress,
   IconButton,
   Divider,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -35,6 +40,7 @@ interface ProductFormInputs {
   slug: string;
   price: number;
   description: string;
+  categoryId: number;
   location?: string;
   imageUrl?: string;
   latitude?: number;
@@ -65,6 +71,12 @@ export const ProductEdit: React.FC = () => {
     },
   });
 
+  const { options: categoryOptions, queryResult: categoryQueryResult } = useSelect({
+    resource: 'categories',
+    optionLabel: 'name',
+    optionValue: 'id',
+  });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'routePoints',
@@ -74,6 +86,7 @@ export const ProductEdit: React.FC = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const currentImageUrl = watch('imageUrl');
+  const selectedCategoryId = watch('categoryId');
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -120,13 +133,11 @@ export const ProductEdit: React.FC = () => {
   const previewUrl = productSlug ? `${FRONTEND_URL}/${productSlug}` : null;
 
   const handleFormSubmit = (values: ProductFormInputs) => {
-    // 1. Kopia obiektów z formularza
     const payload: Record<string, any> = { ...values };
-
-    // Usuwamy ID głównego wycieczki z body (NestJS przekazuje je w URL)
     delete payload.id;
 
-    // 2. Oczyszczanie routePoints – wycinamy 'id' i 'productId', zostawiamy tylko akceptowane pola DTO
+    payload.categoryId = parseOptionalNumber(payload.categoryId);
+
     if (Array.isArray(payload.routePoints)) {
       payload.routePoints = payload.routePoints.map((point, index) => {
         return {
@@ -138,7 +149,6 @@ export const ProductEdit: React.FC = () => {
       });
     }
 
-    // 3. Usuwanie wartości undefined
     Object.keys(payload).forEach(
       (key) => payload[key] === undefined && delete payload[key]
     );
@@ -180,6 +190,30 @@ export const ProductEdit: React.FC = () => {
             fullWidth
             InputLabelProps={{ shrink: true }}
           />
+
+          <FormControl fullWidth error={!!errors.categoryId}>
+            <InputLabel id='category-select-edit-label' shrink>Kategoria</InputLabel>
+            <Select
+              labelId='category-select-edit-label'
+              label='Kategoria'
+              value={selectedCategoryId || ''}
+              onChange={(e) => setValue('categoryId', Number(e.target.value), { shouldValidate: true })}
+            >
+              {categoryQueryResult.isLoading ? (
+                <MenuItem disabled>Ładowanie kategorii...</MenuItem>
+              ) : (
+                categoryOptions?.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))
+              )}
+            </Select>
+            {errors.categoryId && (
+              <FormHelperText>{errors.categoryId.message as string}</FormHelperText>
+            )}
+          </FormControl>
+
           <TextField
             {...register('price', {
               required: 'Cena jest wymagana',

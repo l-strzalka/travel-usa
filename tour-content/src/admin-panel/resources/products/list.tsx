@@ -1,12 +1,16 @@
 import React from 'react';
 import { useDataGrid, List, EditButton, DeleteButton } from '@refinedev/mui';
-import { Avatar, Box, Typography, IconButton, Tooltip } from '@mui/material';
+import { Avatar, Box, Typography, IconButton, Tooltip, Chip } from '@mui/material';
 import LandscapeIcon from '@mui/icons-material/Landscape';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { FRONTEND_URL } from '../../../config';
 
-// Interfejs odzwierciedlający model Product z Prisma
+interface ICategory {
+  id: number;
+  name: string;
+}
+
 interface IProduct {
   id: number;
   name: string;
@@ -15,15 +19,14 @@ interface IProduct {
   description: string;
   imageUrl?: string | null;
   location?: string | null;
+  category?: ICategory;
 }
 
 export const ProductList: React.FC = () => {
-  // Pobieranie danych z backendu za pomocą mechanizmów Refine
   const { dataGridProps } = useDataGrid<IProduct>({
     syncWithLocation: true,
   });
 
-  // Definicja kolumn tabeli DataGrid
   const columns = React.useMemo<GridColDef<IProduct>[]>(
     () => [
       {
@@ -34,7 +37,6 @@ export const ProductList: React.FC = () => {
         align: 'center',
         headerAlign: 'center',
       },
-      // --- KOLUMNA MINIATURKI (ZDJĘCIA) ---
       {
         field: 'imageUrl',
         headerName: 'Miniaturka',
@@ -66,14 +68,12 @@ export const ProductList: React.FC = () => {
                   borderColor: 'grey.300',
                 }}
               >
-                {/* Ikona zastępcza (Fallback), gdy brak url zdjęcia w bazie[cite: 1] */}
                 <LandscapeIcon sx={{ color: 'grey.500' }} />
               </Avatar>
             </Box>
           );
         },
       },
-      // ------------------------------------
       {
         field: 'name',
         headerName: 'Nazwa wycieczki',
@@ -83,6 +83,15 @@ export const ProductList: React.FC = () => {
           <Typography variant='body2' sx={{ fontWeight: 'medium' }}>
             {params.value}
           </Typography>
+        ),
+      },
+      {
+        field: 'category',
+        headerName: 'Kategoria',
+        width: 150,
+        valueGetter: (value, row) => row?.category?.name || '—',
+        renderCell: (params) => (
+          <Chip label={params.row?.category?.name || 'Ogólna'} size='small' variant='outlined' />
         ),
       },
       {
@@ -99,7 +108,6 @@ export const ProductList: React.FC = () => {
         align: 'right',
         headerAlign: 'right',
         valueFormatter: (value) => {
-          // Sprawdzamy, czy MUI przekazało obiekt params (stara wersja), czy surową wartość (nowa wersja)[cite: 2]
           const actualValue =
             typeof value === 'object' && value !== null && 'value' in value
               ? (value as any).value
@@ -117,8 +125,6 @@ export const ProductList: React.FC = () => {
           return isNaN(num) ? '—' : `${num.toFixed(2)} zł`;
         },
       },
-
-// --- KOLUMNA PODGLĄDU Z UŻYCIEM SLUGA ---
       {
         field: 'preview',
         headerName: 'Podgląd',
@@ -128,7 +134,6 @@ export const ProductList: React.FC = () => {
         align: 'center',
         headerAlign: 'center',
         renderCell: (params) => {
-          // Generujemy bezpieczny link na podstawie unikalnego sluga z bazy[cite: 1]
           const previewUrl = `${FRONTEND_URL}/${params.row.slug}`;
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
@@ -147,11 +152,9 @@ export const ProductList: React.FC = () => {
           );
         },
       },
-
       {
         field: 'actions',
         headerName: 'Akcje',
-
         width: 150,
         align: 'center',
         headerAlign: 'center',

@@ -1,7 +1,7 @@
-// TravelUSA\tour-content\src\admin-panel\resources\products\create.tsx
 import { API_URL } from '@/App';
 import React, { useState } from 'react';
 import { useForm } from '@refinedev/react-hook-form';
+import { useSelect } from '@refinedev/core';
 import { useFieldArray } from 'react-hook-form';
 import {
   Box,
@@ -13,6 +13,11 @@ import {
   CircularProgress,
   IconButton,
   Divider,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Select,
+  FormHelperText,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,6 +39,7 @@ export interface ProductFormInputs {
   slug?: string;
   price: number;
   description: string;
+  categoryId: number;
   location?: string;
   imageUrl?: string;
   latitude?: number;
@@ -67,6 +73,12 @@ export const ProductCreate = () => {
     },
   });
 
+  const { options: categoryOptions, queryResult: categoryQueryResult } = useSelect({
+    resource: 'categories',
+    optionLabel: 'name',
+    optionValue: 'id',
+  });
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'routePoints',
@@ -76,6 +88,7 @@ export const ProductCreate = () => {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   const currentImageUrl = watch('imageUrl');
+  const selectedCategoryId = watch('categoryId');
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -121,14 +134,13 @@ export const ProductCreate = () => {
   const { focusElementRef, ref, ...safeSaveButtonProps } = saveButtonProps as any;
 
   const handleFormSubmit = (values: ProductFormInputs) => {
-    // 1. Jawnie odcinamy 'id' oraz 'slug' od reszty danych
-    const { id, slug, routePoints, ...restValues } = values;
+    const { id, slug, routePoints, categoryId, ...restValues } = values;
 
     const payload: Record<string, any> = {
       ...restValues,
+      categoryId: parseOptionalNumber(categoryId),
     };
 
-    // 2. Oczyszczamy punkty trasy ze zbędnych pól
     if (Array.isArray(routePoints)) {
       payload.routePoints = routePoints.map((point, index) => ({
         title: point.title || '',
@@ -138,12 +150,10 @@ export const ProductCreate = () => {
       }));
     }
 
-    // 3. Usuwamy ewentualne pola z wartością undefined
     Object.keys(payload).forEach(
       (key) => payload[key] === undefined && delete payload[key],
     );
 
-    // Przekazujemy w pełni oczyszczony obiekt bezpośrednio do onFinish
     onFinish(payload as any);
   };
 
@@ -167,6 +177,30 @@ export const ProductCreate = () => {
             }
             fullWidth
           />
+
+          <FormControl fullWidth error={!!errors.categoryId}>
+            <InputLabel id='category-select-label'>Kategoria</InputLabel>
+            <Select
+              labelId='category-select-label'
+              label='Kategoria'
+              value={selectedCategoryId || ''}
+              onChange={(e) => setValue('categoryId', Number(e.target.value), { shouldValidate: true })}
+            >
+              {categoryQueryResult.isLoading ? (
+                <MenuItem disabled>Ładowanie kategorii...</MenuItem>
+              ) : (
+                categoryOptions?.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))
+              )}
+            </Select>
+            {errors.categoryId && (
+              <FormHelperText>{errors.categoryId.message as string}</FormHelperText>
+            )}
+          </FormControl>
+
           <TextField
             {...register('price', {
               required: 'Cena jest wymagana',
