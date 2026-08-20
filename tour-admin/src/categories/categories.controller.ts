@@ -63,14 +63,14 @@ export class CategoriesController {
   }
 
   // POST localhost:3000/categories
-  @UseGuards(AdminGuard)
+
   @Post()
   async addCategory(@Body() body: CreateCategoryDto) {
     return this.categoriesService.add(body);
   }
 
   // PATCH localhost:3000/categories/:id
-  @UseGuards(AdminGuard)
+
   @Patch('/:id')
   async editCategory(@Param('id') id: string, @Body() body: EditCategoryDto) {
     return this.categoriesService.edit(+id, body);

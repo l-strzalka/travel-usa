@@ -37,6 +37,12 @@ import {
   ProductEdit,
 } from './admin-panel/resources/products';
 
+import {
+  CategoryList,
+  CategoryCreate,
+  
+} from './admin-panel/resources/categories';
+
 import { API_URL, FRONTEND_URL } from './config';
 import { ScrollToTop } from './features/components/ScrollToTop';
 
@@ -70,7 +76,7 @@ function App() {
       <RefineSnackbarProvider>
         <DevtoolsProvider>
           <Refine
-            dataProvider={dataProvider(API_URL, axiosInstance)}
+            dataProvider={dataProvider(API_URL, axiosInstance as any)}
             notificationProvider={notificationProvider}
             routerProvider={routerProvider}
             authProvider={authProvider}
@@ -85,6 +91,15 @@ function App() {
                   label: 'Oferty Wycieczek',
                 },
               },
+              {
+                name: 'categories',
+                list: '/admin/categories',
+                create: '/admin/categories/create',
+                edit: '/admin/categories/edit/:id',
+                meta: {
+                  label: 'Kategorie',
+                }
+              }
             ]}
             options={{
               syncWithLocation: true,
@@ -163,6 +178,12 @@ function App() {
                   <Route index element={<ProductList />} />
                   <Route path='create' element={<ProductCreate />} />
                   <Route path='edit/:id' element={<ProductEdit />} />
+                </Route>
+
+                <Route path='categories'>
+                  <Route index element={<CategoryList/>} />
+                  <Route path='create' element={<CategoryCreate />} />
+                  <Route path="edit/:id" element={<CategoryCreate />} />
                 </Route>
 
                 {/* Obsługa błędów 404 wewnątrz panelu */}

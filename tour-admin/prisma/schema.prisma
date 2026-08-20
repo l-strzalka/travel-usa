@@ -78,6 +78,7 @@ model RoutePoint {
   longitude Float
   stopOrder Int // Kolejność punktu na trasie (np. 1, 2, 3...)
   title     String? // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
+  categoryId Int?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 

@@ -19,8 +19,10 @@ export class RoutePointDto {
   @Type(() => Number)
   id?: number;
 
+  @IsOptional()
   @IsInt()
   @IsNotEmpty()
+  @Type(() => Number)
   categoryId?: number;
 
   // Pozwalamy na pole 'productId' (jeśli baza/ORM je zwraca i przesyła)

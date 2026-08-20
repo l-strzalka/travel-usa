@@ -54,7 +54,7 @@ const parseOptionalNumber = (value: any) => {
   return isNaN(parsed) ? undefined : parsed;
 };
 
-export const ProductEdit: React.FC = () => {
+export const ProductEdit = () => {
   const {
     register,
     handleSubmit,
