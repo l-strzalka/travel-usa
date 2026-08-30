@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { CategoriesModule } from './categories/categories.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CategoriesModule } from './categories/categories.module';
     AuthModule,
     UploadModule,
     CategoriesModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

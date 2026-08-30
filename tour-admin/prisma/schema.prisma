@@ -5,6 +5,7 @@
 
 enum OrderStatus {
   PENDING
+  CONFIRMED
   PAID
   CANCELLED
 }
@@ -72,12 +73,12 @@ model Category {
 }
 
 model RoutePoint {
-  id        Int     @id @default(autoincrement())
-  productId Int
-  latitude  Float
-  longitude Float
-  stopOrder Int // Kolejność punktu na trasie (np. 1, 2, 3...)
-  title     String? // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
+  id         Int     @id @default(autoincrement())
+  productId  Int
+  latitude   Float
+  longitude  Float
+  stopOrder  Int // Kolejność punktu na trasie (np. 1, 2, 3...)
+  title      String? // Opcjonalna nazwa przystanku (np. "Wielki Kanion")
   categoryId Int?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -87,13 +88,16 @@ model RoutePoint {
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
-  userId      Int
-  totalAmount Decimal     @db.Decimal(10, 2)
-  status      OrderStatus @default(PENDING)
-  createdAt   DateTime    @default(now())
+  id            Int         @id @default(autoincrement())
+  userId        Int?
+  totalAmount   Decimal     @db.Decimal(10, 2)
+  status        OrderStatus @default(PENDING)
+  createdAt     DateTime    @default(now())
+  customerName  String
+  customerEmail String
+  customerPhone Int
 
-  user  User        @relation(fields: [userId], references: [id])
+  user  User?       @relation(fields: [userId], references: [id])
   items OrderItem[]
 
   @@index([userId])
@@ -124,7 +128,7 @@ model PlannerItem {
   user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 
-  @@index([userId])   
+  @@index([userId])
   @@index([productId])
   @@map("planneritem")
 }

@@ -40,8 +40,13 @@ import {
 import {
   CategoryList,
   CategoryCreate,
-  
 } from './admin-panel/resources/categories';
+
+import { 
+  OrderList, 
+  OrderCreate, 
+  OrderEdit 
+} from './admin-panel/resources/orders';
 
 import { API_URL, FRONTEND_URL } from './config';
 import { ScrollToTop } from './features/components/ScrollToTop';
@@ -98,8 +103,17 @@ function App() {
                 edit: '/admin/categories/edit/:id',
                 meta: {
                   label: 'Kategorie',
-                }
-              }
+                },
+              },
+              {
+                name: 'orders',
+                list: '/admin/orders',
+                create: '/admin/orders/create',
+                edit: '/admin/orders/create/:id',
+                meta: {
+                  label: 'Zamówienia',
+                },
+              },
             ]}
             options={{
               syncWithLocation: true,
@@ -181,9 +195,15 @@ function App() {
                 </Route>
 
                 <Route path='categories'>
-                  <Route index element={<CategoryList/>} />
+                  <Route index element={<CategoryList />} />
                   <Route path='create' element={<CategoryCreate />} />
-                  <Route path="edit/:id" element={<CategoryCreate />} />
+                  <Route path='edit/:id' element={<CategoryCreate />} />
+                </Route>
+
+                <Route path='orders'>
+                  <Route index element={<OrderList/>} />
+                  <Route path='create' element={<OrderCreate />} />
+                  <Route path='edit/:id' element={<OrderEdit />} />
                 </Route>
 
                 {/* Obsługa błędów 404 wewnątrz panelu */}
