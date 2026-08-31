@@ -1,11 +1,11 @@
 import './components/css/Carousel.css';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { CarouselItem } from '@/features/components/Carousel/components/CarouselItem';
-import { images } from './components/images';
+import { images, CarouselSlide } from './components/images';
 import { CarouselControls } from './components/CarouselControls';
 
 export const Carousel = () => {
-  const [items, setItems] = useState(images);
+  const [items, setItems] = useState<CarouselSlide[]>(images);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [prevClick, setIsPrevClick] = useState(false);
   const [hasPrepended, setHasPrepended] = useState(false);
@@ -123,11 +123,10 @@ export const Carousel = () => {
             transform: `translateX(${isTransitioning ? (prevClick ? 0 : -slideWidth) : prevClick ? -slideWidth : 0}px)`,
           }}
         >
-          {items.map((src, index) => (
+          {items.map((slide, index) => (
             <CarouselItem
-              key={src + index} // Unikalny klucz
-              alt={`Slide ${index + 1}`}
-              src={src} 
+              key={slide.src + index}
+              slide={slide}
               index={index} 
               width={slideWidth}
               height={slideHeight}

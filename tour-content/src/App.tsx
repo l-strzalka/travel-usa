@@ -139,7 +139,6 @@ function App() {
                 element={
                   <>
                     <Header variant='static' />
-                    {/* Margines górny odpowiadający standardowej wysokości paska (ok. 64px) z MUI */}
                     <Box component='main' sx={{ pt: { xs: 7, sm: 8 } }}>
                       <Outlet />
                     </Box>

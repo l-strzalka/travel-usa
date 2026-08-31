@@ -7,20 +7,81 @@ import {
   CircularProgress,
   Alert,
 } from '@mui/material';
-import { useMemo } from 'react';
+import { useMemo, useCallback, memo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useInfiniteExploreTours } from '@/features/hooks/useInfiniteExploreTours';
 import { ExploreProductCard } from './ExploreProductCard';
 import { ExploreArchiveSkeleton } from './ExploreArchiveSkeleton';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { ExploreFilters } from '../types/explore.types';
-import { SearchForm } from '../../SearchForm';
+import { SearchForm } from '../../SearchForm/SearchForm';
 
+// -------------------------------------------------------------------------
+// 1. ZAMROŻONY BANNER GŁÓWNY (Brak re-renderów przy stabilnym propie)
+// -------------------------------------------------------------------------
+interface ExploreHeroBannerProps {
+  onSearchSubmit: (newFilters: { search?: string; location?: string }) => void;
+}
+
+const ExploreHeroBanner = memo(({ onSearchSubmit }: ExploreHeroBannerProps) => {
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        width: '100%',
+        height: { xs: 260, md: 380 },
+        backgroundImage:
+          'linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url("https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=80")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        mb: 6,
+      }}
+    >
+      <Container maxWidth="md" sx={{ textAlign: 'center', color: '#ffffff' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontWeight: 800,
+            fontSize: { xs: 28, md: 44 },
+            mb: 2,
+            letterSpacing: '-0.02em',
+          }}
+        >
+          Odkryj Wyjątkowe Wyprawy
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 400,
+            fontSize: { xs: 15, md: 18 },
+            opacity: 0.9,
+            mb: 3,
+          }}
+        >
+          Przeglądaj najnowsze oferty i znajdź podróż swoich marzeń
+        </Typography>
+
+        <SearchForm
+          variant="hero"
+          onSearchSubmit={onSearchSubmit}
+        />
+      </Container>
+    </Box>
+  );
+});
+
+ExploreHeroBanner.displayName = 'ExploreHeroBanner';
+
+// -------------------------------------------------------------------------
+// 2. GŁÓWNY KOMPONENT ARCHIWUM
+// -------------------------------------------------------------------------
 export const ExploreArchive = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
-
- 
   // 1. Odczyt filtrów z adresu URL
   const filters: ExploreFilters = useMemo(() => {
     const search = searchParams.get('search') || undefined;
@@ -40,7 +101,6 @@ export const ExploreArchive = () => {
     };
   }, [searchParams]);
 
-
   const {
     data,
     isLoading,
@@ -52,14 +112,13 @@ export const ExploreArchive = () => {
     isFetchingNextPage,
   } = useInfiniteExploreTours({ limit: 8, filters });
 
-  // 3. Obsługa URL i filtrów
-  const handleFilterChange = (newFilters: Partial<ExploreFilters>) => {
+  // 3. STAŁA REFERENCJA FUNKCJI (Zapobiega re-renderowaniu ExploreHeroBanner)
+  const handleFilterChange = useCallback((newFilters: Partial<ExploreFilters>) => {
     setSearchParams(
       (prevParams) => {
         const updatedParams = new URLSearchParams(prevParams);
-        const mergedFilters = { ...filters, ...newFilters };
 
-        Object.entries(mergedFilters).forEach(([key, value]) => {
+        Object.entries(newFilters).forEach(([key, value]) => {
           if (value !== undefined && value !== null && value !== '') {
             updatedParams.set(key, String(value));
           } else {
@@ -71,65 +130,19 @@ export const ExploreArchive = () => {
       },
       { replace: true }
     );
-  };
+  }, [setSearchParams]);
 
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setSearchParams({}, { replace: true });
-  };
+  }, [setSearchParams]);
 
   const allProducts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
     <Box component="section" sx={{ pb: 8, bgcolor: 'background.default' }}>
-      {/* BANNER GŁÓWNY */}
-      <Box
-        sx={{
-          position: 'relative',
-          width: '100%',
-          height: { xs: 260, md: 380 },
-          backgroundImage:
-            'linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url("https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=80")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mb: 6,
-        }}
-      >
-        <Container maxWidth="md" sx={{ textAlign: 'center', color: '#ffffff' }}>
-          <Typography
-            variant="h3"
-            component="h1"
-            sx={{
-              fontWeight: 800,
-              fontSize: { xs: 28, md: 44 },
-              mb: 2,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            Odkryj Wyjątkowe Wyprawy
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 400,
-              fontSize: { xs: 15, md: 18 },
-              opacity: 0.9,
-              mb: 3,
-            }}
-          >
-            Przeglądaj najnowsze oferty i znajdź podróż swoich marzeń
-          </Typography>
+      {/* Baner dostaje idealnie zachowaną referencję funkcji -> zero re-renderów w Profilerze */}
+      <ExploreHeroBanner onSearchSubmit={handleFilterChange} />
 
-          <SearchForm
-          variant="hero"
-            onSearchSubmit={(newFilters) => handleFilterChange(newFilters)}
-          />
-        </Container>
-      </Box>
-
-      {/* SEKCJA KATALOGU I FILTRÓW */}
       <Container maxWidth="xl">
         <CatalogFilterBar
           filters={filters}
@@ -137,10 +150,8 @@ export const ExploreArchive = () => {
           onReset={handleResetFilters}
         />
 
-        {/* 1. SKELETON: Pokazuje się TYLKO przy pierwszym ładowaniu aplikacji */}
         {isLoading && <ExploreArchiveSkeleton count={8} />}
 
-        {/* 2. BŁĄD */}
         {isError && (
           <Alert severity="error" sx={{ my: 4 }}>
             Nie udało się załadować ofert:{' '}
@@ -148,7 +159,6 @@ export const ExploreArchive = () => {
           </Alert>
         )}
 
-        {/* 3. BRAK WYNIKÓW */}
         {!isLoading && !isError && allProducts.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <Typography variant="h6" color="text.secondary">
@@ -157,14 +167,12 @@ export const ExploreArchive = () => {
           </Box>
         )}
 
-        {/* 4. LISTA PRODUKTÓW Z EFEKTEM PRZYCIEMNIENIA */}
         {!isLoading && allProducts.length > 0 && (
           <>
             <Grid
               container
               spacing={3}
               sx={{
-                // Przyciemnia karty i dodaje łagodne przejście przy pobieraniu nowych filtrów
                 opacity: isPlaceholderData ? 0.5 : 1,
                 transition: 'opacity 0.25s ease-in-out',
                 pointerEvents: isPlaceholderData ? 'none' : 'auto',
@@ -177,7 +185,6 @@ export const ExploreArchive = () => {
               ))}
             </Grid>
 
-            {/* PRZYCISK "ZAŁADUJ WIĘCEJ" */}
             {hasNextPage && (
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
                 <Button

@@ -1,22 +1,23 @@
+import { Link } from "react-router-dom";
+import { CarouselSlide } from "./images";
+
 type Props = {
-  src: string,
-  index: number,
-  width: string | number,
-  height: string | number,
-  alt: string,
-  onMouseEnter: () => void,
-  onMouseLeave: () => void,
+  slide: CarouselSlide;
+  index: number;
+  width: string | number;
+  height: string | number;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 }
 
-export const CarouselItem: React.FC<Props> = ({
-  src,
+export const CarouselItem  = ({
+  slide,
   index,
   width,
   height,
-  alt,
   onMouseEnter,
   onMouseLeave,
-}) => {
+}: Props) => {
   return (
       <div
           className="carousel-item"
@@ -28,9 +29,10 @@ export const CarouselItem: React.FC<Props> = ({
             flexShrink: 0,
           }}
       >
-        <img src={src} alt={alt} width={width} height={height} data-index={index} />
+        <img src={slide.src} alt={`Slide ${index + 1}`} width={width} height={height} data-index={index} />
         <div className="text-overlay">
-          <span className="highlight">Zobacz Więcej</span>
+          <Link to={slide.link} style={{ textDecoration: 'none' }}><span className="highlight">Zobacz Więcej</span></Link>
+          
         </div>
       </div>
   );

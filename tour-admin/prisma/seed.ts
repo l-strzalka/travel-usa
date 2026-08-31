@@ -1,4 +1,4 @@
-import { PrismaClient, UserStatus } from '@prisma/client';
+import { PrismaClient, UserStatus, OrderStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -13,25 +13,56 @@ async function main() {
   await prisma.order.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
 
   const hashedPassword = await bcrypt.hash('1qwerty', 10);
 
+  // Tworzenie konta administratora
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@admin.pl' },
     update: {
       password: hashedPassword,
-      name: 'Łukasz',
+      name: 'Łukasz Admin',
       status: UserStatus.ADMIN,
     },
     create: {
       email: 'admin@admin.pl',
       password: hashedPassword,
-      name: 'Łukasz',
+      name: 'Łukasz Admin',
       status: UserStatus.ADMIN,
     },
   });
 
+  // Tworzenie standardowych użytkowników do zamówień
+  const userJan = await prisma.user.create({
+    data: {
+      email: 'jan.kowalski@example.com',
+      password: hashedPassword,
+      name: 'Jan Kowalski',
+      status: UserStatus.USER,
+    },
+  });
+
+  const userAnna = await prisma.user.create({
+    data: {
+      email: 'anna.nowak@example.com',
+      password: hashedPassword,
+      name: 'Anna Nowak',
+      status: UserStatus.USER,
+    },
+  });
+
+  const userPiotr = await prisma.user.create({
+    data: {
+      email: 'piotr.wisniewski@example.com',
+      password: hashedPassword,
+      name: 'Piotr Wiśniewski',
+      status: UserStatus.USER,
+    },
+  });
+
   console.log(`Stworzono konto administratora: ${adminUser.email}`);
+  console.log('Stworzono konta testowych użytkowników.');
 
   // 2. Tworzenie Kategorii
   const catWestCoast = await prisma.category.create({
@@ -61,7 +92,7 @@ async function main() {
   // 3. Tworzenie Produktów (Wycieczek) wraz z Punktami Trasy (RoutePoints)
 
   // PRODUKT 1: Wielki Kanion i Parki Narodowe USA
-  await prisma.product.create({
+  const prod1 = await prisma.product.create({
     data: {
       name: 'Wielki Kanion i Dziki Zachód',
       slug: 'wielki-kanion-i-dziki-zachod',
@@ -112,7 +143,7 @@ async function main() {
   });
 
   // PRODUKT 2: Kalifornia i Pacyfik
-  await prisma.product.create({
+  const prod2 = await prisma.product.create({
     data: {
       name: 'Słoneczna Kalifornia i Pacific Coast Highway',
       slug: 'sloneczna-kalifornia-i-pacific-coast-highway',
@@ -163,7 +194,7 @@ async function main() {
   });
 
   // PRODUKT 3: Nowy Jork i Wschodnie Wybrzeże
-  await prisma.product.create({
+  const prod3 = await prisma.product.create({
     data: {
       name: 'Nowy Jork i Metropolie Wschodniego Wybrzeża',
       slug: 'nowy-jork-i-metropolie-wschodniego-wybrzeza',
@@ -202,7 +233,7 @@ async function main() {
   });
 
   // PRODUKT 4: Alaska i Dzika Przyroda
-  await prisma.product.create({
+  const prod4 = await prisma.product.create({
     data: {
       name: 'Dzika Alaska - Kraina Lodowców i Niedźwiedzi',
       slug: 'dzika-alaska-kraina-lodowcow-i-niedzwiedzi',
@@ -240,6 +271,272 @@ async function main() {
     },
   });
 
+  // PRODUKT 5 (NOWY): Yellowstone i Góry Skaliste (Kategoria: Dzika Przyroda)
+  const prod5 = await prisma.product.create({
+    data: {
+      name: 'Magia Yellowstone i Kanadyjskich Gór Skalistych',
+      slug: 'magia-yellowstone-i-gory-skaliste',
+      description:
+        'Wyprawa śladami gejzerów, gorących źródeł oraz dzikiej zwierzyny. Zwiedzanie pierwszego na świecie Parku Narodowego Yellowstone, spektakularnych szczytów Grand Teton oraz przejazd przez malownicze drogi Wyoming.',
+      price: 16800.0,
+      imageUrl:
+        'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80',
+      location: 'Wyoming & Montana, USA',
+      latitude: 44.428,
+      longitude: -110.5885,
+      categoryId: catNature.id,
+      routePoints: {
+        create: [
+          {
+            stopOrder: 1,
+            title: 'Jackson Hole & Grand Teton',
+            latitude: 43.4799,
+            longitude: -110.7624,
+          },
+          {
+            stopOrder: 2,
+            title: 'Gejzer Old Faithful (Yellowstone)',
+            latitude: 44.4605,
+            longitude: -110.8281,
+          },
+          {
+            stopOrder: 3,
+            title: 'Grand Prismatic Spring',
+            latitude: 44.525,
+            longitude: -110.8381,
+          },
+        ],
+      },
+    },
+  });
+
+  // PRODUKT 6 (NOWY): Floryda i Ocean Atlantycki (Kategoria: Wschodnie Wybrzeże)
+  const prod6 = await prisma.product.create({
+    data: {
+      name: 'Słoneczna Floryda & Key West Roadtrip',
+      slug: 'sloneczna-floryda-and-key-west-roadtrip',
+      description:
+        "Połączenie wypoczynku i ekscytującego roadtripu. Od kosmicznego Centrum Keneddy'ego na Cape Canaveral, przez tętniące życiem Miami South Beach, bagna Everglades pełne aligatorów, aż po słynny drogowy most Overseas Highway prowadzący na Key West.",
+      price: 13400.0,
+      imageUrl:
+        'https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?auto=format&fit=crop&w=1200&q=80',
+      location: 'Floryda, USA',
+      latitude: 25.7617,
+      longitude: -80.1918,
+      categoryId: catEastCoast.id,
+      routePoints: {
+        create: [
+          {
+            stopOrder: 1,
+            title: 'Miami Beach & Ocean Drive',
+            latitude: 25.7826,
+            longitude: -80.134,
+          },
+          {
+            stopOrder: 2,
+            title: 'Park Narodowy Everglades',
+            latitude: 25.2866,
+            longitude: -80.8987,
+          },
+          {
+            stopOrder: 3,
+            title: 'Key West - Najdalej na południe wysunięty punkt USA',
+            latitude: 24.5551,
+            longitude: -81.78,
+          },
+        ],
+      },
+    },
+  });
+
+  // PRODUKT 7 (NOWY): Route 66 i Droga do Kalifornii (Kategoria: Zachodnie Wybrzeże)
+  const prod7 = await prisma.product.create({
+    data: {
+      name: 'Legenda Route 66 - Od Chicago do Los Angeles',
+      slug: 'legenda-route-66-od-chicago-do-los-angeles',
+      description:
+        'Mityczna Droga-Matka. Ponad 3900 km przez serce Ameryki. Stare stacje benzynowe, neony, klasyczne dinary i niepowtarzalny klimat minionej epoki motorowej Ameryki.',
+      price: 17500.0,
+      imageUrl:
+        'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1200&q=80',
+      location: 'Illinois do Kalifornia, USA',
+      latitude: 41.8781,
+      longitude: -87.6298,
+      categoryId: catWestCoast.id,
+      routePoints: {
+        create: [
+          {
+            stopOrder: 1,
+            title: 'Chicago - Punkt początkowy',
+            latitude: 41.8781,
+            longitude: -87.6298,
+          },
+          {
+            stopOrder: 2,
+            title: 'St. Louis & Gateway Arch',
+            latitude: 38.627,
+            longitude: -90.1994,
+          },
+          {
+            stopOrder: 3,
+            title: 'Cadillac Ranch (Amarillo)',
+            latitude: 35.1872,
+            longitude: -101.987,
+          },
+          {
+            stopOrder: 4,
+            title: 'Santa Monica Pier - Koniec Route 66',
+            latitude: 34.01,
+            longitude: -118.496,
+          },
+        ],
+      },
+    },
+  });
+
+  console.log('Stworzono wycieczki i punkty tras.');
+
+  // 4. Tworzenie Zamówień (Order) oraz Pozycji Zamówienia (OrderItem)
+
+  const ordersData = [
+    {
+      userId: userJan.id,
+      customerName: 'Jan Kowalski',
+      customerEmail: 'jan.kowalski@example.com',
+      customerPhone: 601234567,
+      status: OrderStatus.PAID,
+      totalAmount: 25998.0,
+      createdAt: new Date('2026-01-15T10:30:00Z'),
+      items: [{ productId: prod1.id, quantity: 2, price: 12999.0 }],
+    },
+    {
+      userId: userAnna.id,
+      customerName: 'Anna Nowak',
+      customerEmail: 'anna.nowak@example.com',
+      customerPhone: 502345678,
+      status: OrderStatus.CONFIRMED,
+      totalAmount: 14500.0,
+      createdAt: new Date('2026-02-01T14:20:00Z'),
+      items: [{ productId: prod2.id, quantity: 1, price: 14500.0 }],
+    },
+    {
+      userId: userPiotr.id,
+      customerName: 'Piotr Wiśniewski',
+      customerEmail: 'piotr.wisniewski@example.com',
+      customerPhone: 703456789,
+      status: OrderStatus.PENDING,
+      totalAmount: 37800.0,
+      createdAt: new Date('2026-02-10T09:15:00Z'),
+      items: [{ productId: prod4.id, quantity: 2, price: 18900.0 }],
+    },
+    {
+      userId: null, // Gość
+      customerName: 'Marek Zieliński',
+      customerEmail: 'marek.zielinski@guest.com',
+      customerPhone: 699888777,
+      status: OrderStatus.PAID,
+      totalAmount: 11200.0,
+      createdAt: new Date('2026-02-12T16:45:00Z'),
+      items: [{ productId: prod3.id, quantity: 1, price: 11200.0 }],
+    },
+    {
+      userId: userJan.id,
+      customerName: 'Jan Kowalski',
+      customerEmail: 'jan.kowalski@example.com',
+      customerPhone: 601234567,
+      status: OrderStatus.CANCELLED,
+      totalAmount: 16800.0,
+      createdAt: new Date('2026-02-14T11:00:00Z'),
+      items: [{ productId: prod5.id, quantity: 1, price: 16800.0 }],
+    },
+    {
+      userId: null, // Gość
+      customerName: 'Katarzyna Wójcik',
+      customerEmail: 'katarzyna.wojcik@test.pl',
+      customerPhone: 511222333,
+      status: OrderStatus.PAID,
+      totalAmount: 26800.0,
+      createdAt: new Date('2026-02-18T18:00:00Z'),
+      items: [{ productId: prod6.id, quantity: 2, price: 13400.0 }],
+    },
+    {
+      userId: userAnna.id,
+      customerName: 'Anna Nowak',
+      customerEmail: 'anna.nowak@example.com',
+      customerPhone: 502345678,
+      status: OrderStatus.PENDING,
+      totalAmount: 35000.0,
+      createdAt: new Date('2026-02-20T12:30:00Z'),
+      items: [{ productId: prod7.id, quantity: 2, price: 17500.0 }],
+    },
+    {
+      userId: userPiotr.id,
+      customerName: 'Piotr Wiśniewski',
+      customerEmail: 'piotr.wisniewski@example.com',
+      customerPhone: 703456789,
+      status: OrderStatus.CONFIRMED,
+      totalAmount: 24199.0,
+      createdAt: new Date('2026-02-22T08:50:00Z'),
+      items: [
+        { productId: prod1.id, quantity: 1, price: 12999.0 },
+        { productId: prod3.id, quantity: 1, price: 11200.0 },
+      ],
+    },
+    {
+      userId: null, // Gość
+      customerName: 'Tomasz Kamiński',
+      customerEmail: 'tomasz.kaminski@domain.com',
+      customerPhone: 666555444,
+      status: OrderStatus.PAID,
+      totalAmount: 18900.0,
+      createdAt: new Date('2026-02-24T15:10:00Z'),
+      items: [{ productId: prod4.id, quantity: 1, price: 18900.0 }],
+    },
+    {
+      userId: userJan.id,
+      customerName: 'Jan Kowalski',
+      customerEmail: 'jan.kowalski@example.com',
+      customerPhone: 601234567,
+      status: OrderStatus.CONFIRMED,
+      totalAmount: 14500.0,
+      createdAt: new Date('2026-02-25T19:40:00Z'),
+      items: [{ productId: prod2.id, quantity: 1, price: 14500.0 }],
+    },
+    {
+      userId: null, // Gość
+      customerName: 'Magdalena Lewandowska',
+      customerEmail: 'm.lewandowska@gmail.com',
+      customerPhone: 788999000,
+      status: OrderStatus.CANCELLED,
+      totalAmount: 13400.0,
+      createdAt: new Date('2026-02-26T13:05:00Z'),
+      items: [{ productId: prod6.id, quantity: 1, price: 13400.0 }],
+    },
+    {
+      userId: userAnna.id,
+      customerName: 'Anna Nowak',
+      customerEmail: 'anna.nowak@example.com',
+      customerPhone: 502345678,
+      status: OrderStatus.PAID,
+      totalAmount: 33600.0,
+      createdAt: new Date('2026-02-28T09:00:00Z'),
+      items: [{ productId: prod5.id, quantity: 2, price: 16800.0 }],
+    },
+  ];
+
+  for (const orderData of ordersData) {
+    const { items, ...orderInfo } = orderData;
+    await prisma.order.create({
+      data: {
+        ...orderInfo,
+        items: {
+          create: items,
+        },
+      },
+    });
+  }
+
+  console.log(`Stworzono ${ordersData.length} zamówień w bazie danych.`);
   console.log('Seeding zakończony sukcesem!');
 }
 

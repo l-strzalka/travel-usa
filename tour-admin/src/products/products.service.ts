@@ -65,24 +65,101 @@ export class ProductService {
     });
   }
 
-  async getSearchSuggestions(query: string) {
-    const products = await this.prisma.product.findMany({
+  private async getCategoryIdsByName(search: string): Promise<number[]> {
+    const normalizedSearch = search.trim();
+    if (!normalizedSearch) return [];
+
+    const categories = await this.prisma.category.findMany({
       where: {
-        OR: [{ name: { contains: query } }, { location: { contains: query } }],
+        name: { contains: normalizedSearch },
       },
       select: {
         id: true,
-        name: true,
-        location: true,
       },
-      take: 10,
     });
 
-    return products.map((product) => ({
+    return categories.map((category) => category.id);
+  }
+
+  async getSearchSuggestions(query: string) {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return [];
+
+    const matchingCategoryIds =
+      await this.getCategoryIdsByName(normalizedQuery);
+
+    const [products, categories] = await Promise.all([
+      this.prisma.product.findMany({
+        where: {
+          OR: [
+            { name: { contains: normalizedQuery } },
+            { location: { contains: normalizedQuery } },
+            { description: { contains: normalizedQuery } },
+            {
+              categoryId: {
+                in: matchingCategoryIds.length ? matchingCategoryIds : [-1],
+              },
+            },
+          ],
+        },
+        select: {
+          id: true,
+          name: true,
+          location: true,
+          category: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        take: 10,
+      }),
+      this.prisma.category.findMany({
+        where: {
+          name: { contains: normalizedQuery },
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+        take: 10,
+      }),
+    ]);
+
+    const productSuggestions = products.map((product) => ({
       id: product.id,
       label: product.name,
-      category: product.location || 'USA',
+      category: product.category?.name || product.location || 'USA',
+      _score: product.name.toLowerCase().includes(normalizedQuery.toLowerCase())
+        ? 2
+        : 1,
     }));
+
+    const categorySuggestions = categories.map((category) => ({
+      id: category.id,
+      label: category.name,
+      category: 'Kategoria',
+      _score: category.name
+        .toLowerCase()
+        .includes(normalizedQuery.toLowerCase())
+        ? 3
+        : 2,
+    }));
+
+    const merged = [...productSuggestions, ...categorySuggestions];
+    const uniqueByLabel = new Map<string, (typeof merged)[number]>();
+
+    merged.forEach((item) => {
+      const key = item.label.toLowerCase();
+      if (!uniqueByLabel.has(key)) {
+        uniqueByLabel.set(key, item);
+      }
+    });
+
+    return Array.from(uniqueByLabel.values())
+      .sort((a, b) => (b._score ?? 0) - (a._score ?? 0))
+      .map(({ _score, ...item }) => item)
+      .slice(0, 10);
   }
 
   async getAll(
@@ -113,10 +190,17 @@ export class ProductService {
     }
 
     if (search) {
+      const matchingCategoryIds = await this.getCategoryIdsByName(search);
+
       where.OR = [
         { name: { contains: search } },
         { description: { contains: search } },
         { location: { contains: search } },
+        {
+          categoryId: {
+            in: matchingCategoryIds.length ? matchingCategoryIds : [-1],
+          },
+        },
       ];
     }
 

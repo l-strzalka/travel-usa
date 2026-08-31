@@ -54,8 +54,7 @@ export const CatalogFilterBar = ({
       sx={{
         p: 3,
         mb: 4,
-        bgcolor: 'background.paper',
-        borderRadius: 2,
+        bgcolor: 'background.paper',       
         border: '1px solid',
         borderColor: 'grey.200',
         boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
