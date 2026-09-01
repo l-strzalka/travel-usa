@@ -10,7 +10,7 @@ interface ViteImageModule {
 // Mapowanie linków do każdego slajdu
 const SLIDE_LINKS = [
   '/explore?search=NewYork',
-  '/explore?search=Wielki+Kanion+i+Dziki+Zachód',
+  '/explore?search=Zachodnie+Wybrze%C5%BCe+%26+Parki+Narodowe',
   '/planner',
   '/explore',
   '/explore',

@@ -1,17 +1,35 @@
-import cowboy from "../../assets/cowboy-usa.jpeg"
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
+import usaVideo from '../../../public/videos/usa-video.mp4';
 
-export const Hero = () => (
-    <section className="hero">
-        <div className="slider-img">
-            <div className="cowboy-img">
-                <img src={cowboy} alt="Cowboy USA"/>
-            </div>
+export const Hero = () => {
+  return (
+    <section className='hero'>
+      {/* Kontener na wideo i ciemną nakładkę */}
+      <div className='hero-video-wrapper'>
+        <video
+          src={usaVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          className='hero-video'
+        />
+        <div className='hero-overlay'></div>
+      </div>
+
+      {/* Warstwa tekstowa z formularzem */}
+      <div className='hero-content'>
+        <div className='container'>
+          <h1 className='hero-h1'>Poczuj amerykański dziki zachód!</h1>
+          <div className='hero-search-group'>
+            <input
+              className='hero-input'
+              placeholder='Wpisz: Colorado lub Wielki Kanion'
+              type='text'
+            />
+          </div>
         </div>
-        <h1 className="hero-h1">Poczuj amerykański dziki zachód!</h1>
-        <input className="hero-input" placeholder="Wpisz: Colorado lub Wielki Kanion"></input>
-        <button><Link to="/planner">Zobacz Planer</Link></button>
-                 
-     </section>
-
-)
+      </div>
+    </section>
+  );
+};
