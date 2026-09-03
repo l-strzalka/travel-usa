@@ -32,41 +32,65 @@
 
 .hero {
     position: relative;
+    width: 100%;
+    height: 100vh;
+     display: flex;
+      align-items: center;
+      justify-content: center;
     overflow: hidden;
-    margin-top: -1px;
+        // Kontener na film w tle
+  &-video-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+
+    .hero-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; 
+    }
+    // Półprzezroczysta nakładka
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+  }
+  &-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 16px;
+
+  }
     h1 {
+        z-index: 2;
         width: 100%;
-        position: absolute;
-        top: 45%;
+        position: relative;
         left: 50%;
+        margin: 0;
         color: $navbar-actice-text;
         transform: translate(-50%, -50%);
-        font-size: clamp(2rem, 5vw, 3.5rem);
+        font-size: clamp(1.9rem, 5vw, 2.5rem);
         opacity: 0; 
         animation: slideIn 2s ease-out 0.4s forwards;
         };
     input {
-        width: 400px;
-        position: absolute;
+        z-index: 2;
+        width: clamp(250px, 80%, 400px);
+        position: relative;
         padding: 14px;
-        margin-top: 20px;
         background-color: $secondary;
         border: none;
         color: black;
         font-size: 14px;
-        animation: slideInInput 2s ease-out 0.4s forwards;
-        }
-        button {
-            position: absolute;
-            background-color: $navbar-bg;
-            animation: slideInButton 0.8s ease-out 0.4s forwards;
-            a {
-                 color: $navbar-text;
-                 
-            }
-            &:hover{
-                border-color: $navbar-actice-text;
-            }
+        // animation: slideInInput 2s ease-out 0.4s forwards;
         }
 }
 

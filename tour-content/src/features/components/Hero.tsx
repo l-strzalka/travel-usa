@@ -1,12 +1,25 @@
 import { Link } from 'react-router-dom';
-import usaVideo from '../../../public/videos/usa-video.mp4';
+import {useRef, useEffect} from 'react'
+import usaVideo from '/videos/usa-video.mp4';
+
+
 
 export const Hero = () => {
+
+  const videoRef = useRef<HTMLVideoElement | null> (null)
+
+  useEffect(() =>{
+  if(videoRef.current) {
+    videoRef.current.playbackRate = 0.5;
+  }
+},[])
+
   return (
     <section className='hero'>
       {/* Kontener na wideo i ciemną nakładkę */}
       <div className='hero-video-wrapper'>
         <video
+          ref={videoRef}
           src={usaVideo}
           autoPlay
           loop
@@ -19,7 +32,7 @@ export const Hero = () => {
 
       {/* Warstwa tekstowa z formularzem */}
       <div className='hero-content'>
-        <div className='container'>
+  
           <h1 className='hero-h1'>Poczuj amerykański dziki zachód!</h1>
           <div className='hero-search-group'>
             <input
@@ -29,7 +42,6 @@ export const Hero = () => {
             />
           </div>
         </div>
-      </div>
     </section>
   );
 };

@@ -115,12 +115,12 @@ export const SearchForm = ({
           width: '100%',
           maxWidth: variant === 'hero' ? 800 : '100%',
           mx: 'auto',
-          borderRadius: variant === 'hero' ? 3 : 1,
+          borderRadius: 0,
           bgcolor: 'background.paper',
         }}
       >
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: 'column', sm: 'row', }}
           spacing={2}
           alignItems='center'
         >
@@ -145,7 +145,7 @@ export const SearchForm = ({
               width: { xs: '100%', sm: 'auto' },
               whiteSpace: 'nowrap',
               fontWeight: 'bold',
-              borderRadius: 2,
+              borderRadius: 0,
               textTransform: 'none',
             }}
           >
