@@ -1,30 +1,57 @@
+//tour-admin\src\orders\orders.service.ts
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrdersDto } from './dtos/create-orders.dto';
 import { OrderStatus } from '@prisma/client';
 import { EditOrdersDto } from './dtos/edit-orders.dto';
 
+export interface PaginatedOrdersResult {
+  data: any[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 @Injectable()
 export class OrdersService {
-  edit(id: number, dto: EditOrdersDto) {
-    throw new Error('Method not implemented.');
-  }
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll() {
-    return this.prisma.order.findMany({
-      include: {
-        items: {
-          include: {
-            product: true,
+  async findAll(page = 1, limit = 10): Promise<PaginatedOrdersResult> {
+    const pageNumber = Math.max(1, page);
+    const limitNumber = Math.min(10, limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [data, total] = await Promise.all([
+      this.prisma.order.findMany({
+        skip,
+        take: limitNumber,
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
           },
+          user: true,
         },
-        user: true,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.order.count(),
+    ]);
+    return {
+      data,
+      meta: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    };
   }
 
   async findOne(id: number) {

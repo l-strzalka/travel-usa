@@ -1,3 +1,4 @@
+//tour-admin\src\orders\orders.controller.ts
 import {
   Body,
   Controller,
@@ -7,6 +8,8 @@ import {
   Patch,
   Post,
   Put,
+  Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrdersDto } from './dtos/create-orders.dto';
@@ -18,8 +21,11 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.ordersService.findAll(page, limit);
   }
 
   @Get(':id')
@@ -42,6 +48,6 @@ export class OrdersController {
 
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: EditOrdersDto) {
-    return this.ordersService.edit(id, dto);
+    return this.ordersService.update(id, dto);
   }
 }
