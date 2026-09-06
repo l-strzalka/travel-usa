@@ -5,7 +5,6 @@ import { PanoramicWay} from "./PanoramicWay/PanoramicWay";
 
 export const RecommendedPlaces = () => (
 
-    <main>
         <section className="adventure-discovery">
             <div className="adventure-discovery__container">
                 <div className="adventure-discovery__content">
@@ -23,16 +22,6 @@ export const RecommendedPlaces = () => (
             </div>
         </section>
 
-        <section className="adventure-recommendations">
-                <div className="adventure-recommendations__header">
-                    <h2 className="adventure-recommendations__title">
-                        Zobacz niezwykłe miejsca
-                    </h2>
-                    <p className="adventure-recommendations__subtitle">
-                    Wyselekcjonowane punkty na mapie, które zmieniają zwykłą podróż w legendę.
-                    </p>
-                </div>
-                <PanoramicWay/>           
-        </section> 
-    </main>
+       
+    
 )

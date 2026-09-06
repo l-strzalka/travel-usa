@@ -129,17 +129,54 @@ export class OrdersService {
   async update(id: number, dto: EditOrdersDto) {
     await this.findOne(id);
 
+    let totalAmount: number | undefined;
+    let itemsPayload: any;
+
+    if (dto.items && dto.items.length > 0) {
+      const productIds = dto.items.map((item) => item.productId);
+      const products = await this.prisma.product.findMany({
+        where: { id: { in: productIds } },
+      });
+
+      if (products.length !== productIds.length) {
+        throw new NotFoundException(
+          'Niektóre z wybranych wycieczek w pozycjach nie istnieją.',
+        );
+      }
+
+      totalAmount = dto.items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0,
+      );
+
+      itemsPayload = {
+        deleteMany: {},
+        create: dto.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      };
+    }
+
     return this.prisma.order.update({
       where: { id },
       data: {
         customerName: dto.customerName,
         customerEmail: dto.customerEmail,
         customerPhone: dto.customerPhone,
-        userId: dto.userId || null,
+        userId: dto.userId ?? null,
         status: dto.status,
+        totalAmount,
+        items: itemsPayload,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        user: true,
       },
     });
   }

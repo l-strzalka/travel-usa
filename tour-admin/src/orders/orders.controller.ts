@@ -46,7 +46,7 @@ export class OrdersController {
     return this.ordersService.updateStatus(id, status);
   }
 
-  @Put(':id')
+  @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: EditOrdersDto) {
     return this.ordersService.update(id, dto);
   }

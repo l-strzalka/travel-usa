@@ -48,6 +48,10 @@ export class EditOrdersDto {
   status?: OrderStatus;
 
   @IsOptional()
+  @IsString()
+  orders?: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => EditOrderItemDto)

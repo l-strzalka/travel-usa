@@ -109,7 +109,7 @@ function App() {
                 name: 'orders',
                 list: '/admin/orders',
                 create: '/admin/orders/create',
-                edit: '/admin/orders/create/:id',
+                edit: '/admin/orders/edit/:id',
                 show: '/admin/orders/show/:id',
                 meta: {
                   label: 'Zamówienia',
