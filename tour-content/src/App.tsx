@@ -45,7 +45,8 @@ import {
 import { 
   OrderList, 
   OrderCreate, 
-  OrderEdit 
+  OrderEdit, 
+  OrderShow,
 } from './admin-panel/resources/orders';
 
 import { API_URL, FRONTEND_URL } from './config';
@@ -77,7 +78,6 @@ function App() {
     <ThemeProvider theme={theme}>
       <ScrollToTop />
       <CssBaseline />
-
       <RefineSnackbarProvider>
         <DevtoolsProvider>
           <Refine
@@ -110,6 +110,7 @@ function App() {
                 list: '/admin/orders',
                 create: '/admin/orders/create',
                 edit: '/admin/orders/create/:id',
+                show: '/admin/orders/show/:id',
                 meta: {
                   label: 'Zamówienia',
                 },
@@ -203,6 +204,7 @@ function App() {
                   <Route index element={<OrderList/>} />
                   <Route path='create' element={<OrderCreate />} />
                   <Route path='edit/:id' element={<OrderEdit />} />
+                  <Route path="show/:id" element={<OrderShow/>} />
                 </Route>
 
                 {/* Obsługa błędów 404 wewnątrz panelu */}

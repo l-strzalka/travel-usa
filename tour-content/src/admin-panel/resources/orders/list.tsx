@@ -285,7 +285,7 @@ export const OrderList = () => {
                       <Tooltip title="Zobacz szczegóły">
                         <IconButton
                           color="primary"
-                          onClick={() => navigate(`/admin/orders/${order.id}`)}
+                          onClick={() => navigate(`/admin/orders/show/${order.id}`)}
                         >
                           <VisibilityIcon />
                         </IconButton>
