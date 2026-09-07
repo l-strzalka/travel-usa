@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useRef, useEffect } from 'react';
 import usaVideo from '/videos/usa-video.mp4';
-import { SearchForm } from './SearchForm';
+import { HeroSearchForm } from './SearchForm/HeroSearchForm';
 
 interface ExploreHeroBannerProps {
   onSearchSubmit: (newFilters: { search?: string; location?: string }) => void;
@@ -36,7 +36,7 @@ export const Hero = ({ onSearchSubmit }: ExploreHeroBannerProps) => {
       <div className='hero-content'>
         <h1 className='hero-h1'>Poczuj amerykański dziki zachód!</h1>
         <div className='hero-search-group'>
-          <SearchForm variant='hero' onSearchSubmit={onSearchSubmit} />
+          <HeroSearchForm variant='hero' onSearchSubmit={onSearchSubmit} />
         </div>
       </div>
     </section>

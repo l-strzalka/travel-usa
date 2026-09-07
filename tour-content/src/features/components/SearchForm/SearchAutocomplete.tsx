@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Profiler, useMemo, memo } from 'react';
+import { useEffect, useState,  useMemo, memo } from 'react';
 import { Autocomplete, TextField, InputAdornment, Box, Typography, TextFieldProps } from '@mui/material';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useQuery } from '@tanstack/react-query';
@@ -23,50 +23,16 @@ interface SearchAutocompleteProps {
 const MemoizedSearchInput = memo((props: TextFieldProps) => {
   return (
     <TextField
+    
       {...props}
+      
       placeholder="Gdzie chcesz pojechać? (np. Nowy Jork, Luizjana...)"
       variant="outlined"
     />
   );
 });
 
-// -------------------------------------------------------------
-// METRYKI DLA DZIECKA (SearchAutocomplete)
-// -------------------------------------------------------------
-const childMetrics = {
-  mountCount: 0,
-  updateCount: 0,
-  totalRenderTimeMs: 0,
-  maxSingleRenderMs: 0,
-};
 
-let childPrintTimeout: NodeJS.Timeout | null = null;
-
-const onChildRenderCallback = (
-  id: string,
-  phase: 'mount' | 'update',
-  actualDuration: number
-) => {
-  if (phase === 'mount') childMetrics.mountCount++;
-  else childMetrics.updateCount++;
-
-  childMetrics.totalRenderTimeMs += actualDuration;
-  childMetrics.maxSingleRenderMs = Math.max(childMetrics.maxSingleRenderMs, actualDuration);
-
-  if (childPrintTimeout) clearTimeout(childPrintTimeout);
-  childPrintTimeout = setTimeout(() => {
-    console.group(`👶 RAPORT DZIECKA: <${id} />`);
-    console.table({
-      'Liczba pierwszych wyrenderowań (Mount)': childMetrics.mountCount,
-      'Liczba przeliczeń/re-renderów (Update)': childMetrics.updateCount,
-      'Łączny czas spędzony w JS (ms)': childMetrics.totalRenderTimeMs.toFixed(3) + ' ms',
-      'Średni czas 1 renderu (ms)': (childMetrics.totalRenderTimeMs / (childMetrics.mountCount + childMetrics.updateCount)).toFixed(3) + ' ms',
-      'Najwolniejszy pojedynczy render (ms)': childMetrics.maxSingleRenderMs.toFixed(3) + ' ms',
-    });
-    console.groupEnd();
-  }, 2000);
-};
-// -------------------------------------------------------------
 
 const normalizeSearchValue = (value: string) => value.trim().replace(/\s+/g, ' ');
 
@@ -85,8 +51,8 @@ export const SearchAutocomplete = ({
   // Zapamiętanie ikony (Poziom 2)
   const startAdornmentMemo = useMemo(
     () => (
-      <InputAdornment position="start">
-        <LocationOnIcon color="action" />
+      <InputAdornment position="start" sx={{p:0}}>
+        {/* <LocationOnIcon color="action" /> */}
       </InputAdornment>
     ),
     []
@@ -120,7 +86,6 @@ export const SearchAutocomplete = ({
   });
 
   return (
-    <Profiler id="SearchAutocomplete_Child" onRender={onChildRenderCallback}>
       <Autocomplete
         fullWidth
         freeSolo
@@ -218,6 +183,5 @@ export const SearchAutocomplete = ({
           );
         }}
       />
-    </Profiler>
   );
 };

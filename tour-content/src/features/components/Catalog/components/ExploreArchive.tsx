@@ -14,7 +14,7 @@ import { ExploreProductCard } from './ExploreProductCard';
 import { ExploreArchiveSkeleton } from './ExploreArchiveSkeleton';
 import { CatalogFilterBar } from './CatalogFilterBar';
 import { ExploreFilters } from '../types/explore.types';
-import { SearchForm } from '../../SearchForm/SearchForm';
+import { ArchiveSearchForm } from '../../SearchForm/ArchiveSearchForm';
 
 // -------------------------------------------------------------------------
 // 1. ZAMROŻONY BANNER GŁÓWNY (Brak re-renderów przy stabilnym propie)
@@ -65,10 +65,7 @@ const ExploreHeroBanner = memo(({ onSearchSubmit }: ExploreHeroBannerProps) => {
           Przeglądaj najnowsze oferty i znajdź podróż swoich marzeń
         </Typography>
 
-        <SearchForm
-          variant="hero"
-          onSearchSubmit={onSearchSubmit}
-        />
+        <ArchiveSearchForm />
       </Container>
     </Box>
   );
