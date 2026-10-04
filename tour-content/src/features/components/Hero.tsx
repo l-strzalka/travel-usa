@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
 import { useRef, useEffect } from 'react';
-import usaVideo from '/videos/usa-video.mp4';
+import usaVideo from '/videos/usa-video-1.mp4';
 import { HeroSearchForm } from './SearchForm/HeroSearchForm';
 
 interface ExploreHeroBannerProps {
@@ -12,7 +11,7 @@ export const Hero = ({ onSearchSubmit }: ExploreHeroBannerProps) => {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.playbackRate = 0.5;
+      videoRef.current.playbackRate = 1;
     }
   }, []);
 
@@ -36,7 +35,7 @@ export const Hero = ({ onSearchSubmit }: ExploreHeroBannerProps) => {
       <div className='hero-content'>
         <h1 className='hero-h1'>Poczuj amerykański dziki zachód!</h1>
         <div className='hero-search-group'>
-          <HeroSearchForm variant='hero' onSearchSubmit={onSearchSubmit} />
+          <HeroSearchForm />
         </div>
       </div>
     </section>

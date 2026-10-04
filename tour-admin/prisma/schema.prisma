@@ -15,6 +15,12 @@ enum UserStatus {
   ADMIN
 }
 
+enum SubscribeStatus {
+  PENDING
+  CONFIRMED
+  UNSUBSCRIBED
+}
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -131,4 +137,21 @@ model PlannerItem {
   @@index([userId])
   @@index([productId])
   @@map("planneritem")
+}
+
+model Newsletter {
+  id                Int             @id @default(autoincrement())
+  email             String          @unique
+  confirmationToken String          @unique @default(uuid())
+  createdAt         DateTime        @default(now())
+  confirmedAt       DateTime?
+  updatedAt         DateTime        @updatedAt
+  status            SubscribeStatus @default(PENDING)
+  marketingConsent  Boolean         @default(false)
+  consentIP         String?
+  externalContactId String?
+
+  @@index([email])
+  @@index([confirmationToken])
+  @@map("newsletter")
 }

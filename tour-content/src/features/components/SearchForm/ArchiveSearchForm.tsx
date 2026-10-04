@@ -59,7 +59,7 @@ export const ArchiveSearchForm: React.FC<ArchiveSearchFormProps> = ({
       onSubmit={handleApplyFilters}
       elevation={1}
       sx={{
-        p: 2,
+        p: 0,
         width: '100%',
         borderRadius: 0,
         bgcolor: 'background.paper',
@@ -96,7 +96,7 @@ export const ArchiveSearchForm: React.FC<ArchiveSearchFormProps> = ({
             textTransform: 'none',
           }}
         >
-          Filtruj
+          Szukaj
         </Button>
       </Stack>
     </Paper>

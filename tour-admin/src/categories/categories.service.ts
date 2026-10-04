@@ -65,7 +65,7 @@ export class CategoriesService {
     const category = await this.prisma.category.findUnique({
       where: { id },
       include: {
-        products: true, // <-- ZMIENIONO z 'product' na 'products'
+        products: true,
       },
     });
 

@@ -1,34 +1,4 @@
-.slider-img {
-    .cloud {
-        width: 100%;
-        margin: 0;
-        height: auto;
-    }
-    .cowboy-img {
-    position: relative;
-    width: 100%;
-    height: 700px;
-    overflow: hidden;
-    margin-top: -1px;
-    
-        img {
-             width: 100%;
-             height: 100%;
-             object-fit: cover;
-        }
 
-        &:after {
-        background: 
-            linear-gradient(0deg, rgba(70, 70, 70, 0.2), rgba(70, 70, 70, 0.1)), linear-gradient(180deg, #464646 1.06%, rgba(102, 102, 102, 0) 20%);
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-    }
-  }
-}
 
 .hero {
     position: relative;
@@ -59,7 +29,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.471);
     }
   }
   &-content {
@@ -73,36 +43,29 @@
         z-index: 2;
         width: 100%;
         position: relative;
+        top: 2.2cap;
         left: 50%;
         margin: 0;
-        color: $navbar-actice-text;
+        color: $navbar-text;
         transform: translate(-50%, -50%);
         font-size: clamp(1.9rem, 5vw, 2.5rem);
         opacity: 0; 
-        animation: slideIn 2s ease-out 0.4s forwards;
+        animation: slideIn 1s ease-out 0.4s forwards;
         };
     input {
         z-index: 2;
-        width: clamp(250px, 80%, 400px);
-        position: relative;
-        padding: 14px;
+        width: clamp(100px, 70%, 200px);
+        padding: 1px;
         background-color: $secondary;
         border: none;
         color: black;
         font-size: 14px;
-        // animation: slideInInput 2s ease-out 0.4s forwards;
         }
 }
 
 @keyframes slideIn {
-    0% { transform: translate(0%, -50%); opacity: 0; } 
+    0% { transform: translate(-50%, -50%); opacity: 0; } 
     100% { transform: translate(-50%, -50%);  opacity: 0.8; } }
 
-@keyframes slideInInput {
-    0% { transform: translate(-350%, -700%); opacity: 0; } 
-    100% { transform: translate(-50%, -700%); opacity: 0.8; } }
-    
-@keyframes slideInButton {
-    0% { transform: translate(-50%, -500%); opacity: 0; } 
-    100% { transform: translate(-50%, -500%); opacity: 1; } }
+
 

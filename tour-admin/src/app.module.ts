@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { CategoriesModule } from './categories/categories.module';
 import { OrdersModule } from './orders/orders.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OrdersModule } from './orders/orders.module';
     UploadModule,
     CategoriesModule,
     OrdersModule,
+    NewsletterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

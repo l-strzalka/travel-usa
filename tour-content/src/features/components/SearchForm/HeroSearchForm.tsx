@@ -57,10 +57,13 @@ export const HeroSearchForm: React.FC = () => {
       sx={{
         p: { xs: 2, md: 2.5 },
         width: '100%',
-        maxWidth: 800,
+        maxWidth: 430,
+        position: 'relative',
+        top: '4.2cap',
         mx: 'auto',
         borderRadius: 0,
-        bgcolor: 'background.paper',
+        bgcolor: 'red',
+
       }}
     >
       <Box sx={{ width: '100%', }}>
