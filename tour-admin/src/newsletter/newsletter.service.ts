@@ -6,7 +6,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SubscribeNewsletterDto } from './dto/subscribe-newsletter.dto';
 import { ConfirmedNewsletterDto } from './dto/confirm.newsletter.dto';
-import { SubscribeStatus } from '@prisma/client';
+import { SubscribeStatus, Newsletter } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
 @Injectable()
@@ -16,48 +16,51 @@ export class NewsletterService {
   async subscribe(dto: SubscribeNewsletterDto, clientIp?: string) {
     const normalizedEmail = dto.email.toLocaleLowerCase().trim();
 
-    const existingSubscription = await this.prisma.newsletter.findUnique({
-      where: { email: normalizedEmail },
-    });
+    const existingSubscription: Newsletter | null =
+      await this.prisma.newsletter.findUnique({
+        where: { email: normalizedEmail },
+      });
 
-    if (existingSubscription) {
+    if (existingSubscription !== null) {
       if (existingSubscription.status === SubscribeStatus.CONFIRMED) {
         throw new ConflictException(
           'Ten adres email jest już zapisany do newslettera',
         );
       }
 
-      const updatePending = await this.prisma.newsletter.update({
+      await this.prisma.newsletter.update({
         where: {
           email: normalizedEmail,
         },
         data: {
-          confirmedToken: randomUUID(),
+          confirmationToken: randomUUID(),
           consentIP: clientIp,
           marketingConsent: dto.marketingConsent,
         },
       });
+
       return {
         message: 'wyslano nowy link aktywacyjny na podany adres e-mail.',
       };
     }
 
-    const newSubscription = await this.prisma.newsletter.create({
+    await this.prisma.newsletter.create({
       data: {
         email: normalizedEmail,
         marketingConsent: dto.marketingConsent,
-        consentIp: clientIp,
-        confirmationToken: randomUUID,
+        consentIP: clientIp,
+        confirmationToken: randomUUID(),
         status: SubscribeStatus.PENDING,
       },
     });
+
     return {
       message:
         'Rejestracja pomyślna. Sprawdź skrzynkę e-mail, aby potwierdzić subskrypcję',
     };
   }
 
-  async confirm(dto: ConfirmedNewsletterDto) {
+  async confirm(dto: ConfirmedNewsletterDto): Promise<{ message: string }> {
     const subscription = await this.prisma.newsletter.findUnique({
       where: { confirmationToken: dto.token },
     });
@@ -68,19 +71,20 @@ export class NewsletterService {
       );
     }
 
-    if ((subscription.status = SubscribeStatus.CONFIRMED)) {
+    if (subscription.status === SubscribeStatus.CONFIRMED) {
       return { message: 'Subskrypcja została już wcześniej potwierdzona.' };
     }
 
-    const confirmedSubscription = await this.prisma.newsletter.upade({
+    await this.prisma.newsletter.update({
       where: {
-        id: subscription.id,
+        confirmationToken: dto.token,
       },
       data: {
         status: SubscribeStatus.CONFIRMED,
         confirmedAt: new Date(),
       },
     });
+
     return {
       message:
         'Adres email został pomyślnie zweryfikowany. Witamy w newsletterze!',

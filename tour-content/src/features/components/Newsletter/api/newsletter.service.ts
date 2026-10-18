@@ -1,11 +1,21 @@
-import axios from 'axios'
-import { useQuery } from '@tanstack/react-query'
-import { API_URL } from '@/config'
+import axios from 'axios';
+import { API_URL } from '@/config';
 
-export const {} = useQuery({
-    queryFn: async () => {
-        const response = await axios.get(
-            `${API_URL}`
-        )
-    }
-})
+export interface SubscriptionResponse {
+  message: string;
+}
+
+export interface SubscribePayload {
+  email: string;
+  marketingConsent: boolean;
+}
+
+export const subscribeToNewsletter = async (
+  payload: SubscribePayload,
+): Promise<SubscriptionResponse> => {
+  const response = await axios.post<SubscriptionResponse>(
+    `${API_URL}/newsletter/subscribe`,
+    payload,
+  );
+  return response.data;
+};
