@@ -4,6 +4,7 @@ import { Hero } from "../features/components/Hero"
 import { RecommendedPlaces } from "../features/components/RecommendedPlaces"
 import { FeaturedTours } from '@/features/components/ProductFeatured/FeaturedDisplay'
 import { CardsSlider } from '@/features/components/CardsSlider'
+import { NewsletterForm } from '@/features/components/Newsletter/components/NewsletterForm'
 
 
 
@@ -13,6 +14,7 @@ export const LandingPage = () => (
       <RecommendedPlaces />
       <FeaturedTours />
       <CardsSlider />
+      <NewsletterForm />
     
     </main>
 

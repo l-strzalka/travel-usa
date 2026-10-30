@@ -46,7 +46,7 @@ export const CategoryList = () => {
     }
   };
   return (
-    <Paper sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
+    <Paper  sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
       <Box
         sx={{
           display: 'flex',

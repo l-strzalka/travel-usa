@@ -42,12 +42,17 @@ import {
   CategoryCreate,
 } from './admin-panel/resources/categories';
 
-import { 
-  OrderList, 
-  OrderCreate, 
-  OrderEdit, 
+import {
+  OrderList,
+  OrderCreate,
+  OrderEdit,
   OrderShow,
 } from './admin-panel/resources/orders';
+
+import {
+  NewsletterList,
+  CreateNewsletter,
+} from './admin-panel/resources/newsletter';
 
 import { API_URL, FRONTEND_URL } from './config';
 import { ScrollToTop } from './features/components/ScrollToTop';
@@ -113,6 +118,15 @@ function App() {
                 show: '/admin/orders/show/:id',
                 meta: {
                   label: 'Zamówienia',
+                },
+              },
+              {
+                name: 'newsletter',
+                list: '/admin/newsletter',
+                create: '/admin/newsletters/create',
+                edit: '/admin/newsletter/edit',
+                meta: {
+                  label: 'Subskrypcje',
                 },
               },
             ]}
@@ -201,10 +215,15 @@ function App() {
                 </Route>
 
                 <Route path='orders'>
-                  <Route index element={<OrderList/>} />
+                  <Route index element={<OrderList />} />
                   <Route path='create' element={<OrderCreate />} />
                   <Route path='edit/:id' element={<OrderEdit />} />
-                  <Route path="show/:id" element={<OrderShow/>} />
+                  <Route path='show/:id' element={<OrderShow />} />
+                </Route>
+
+                <Route path='newsletter'>
+                  <Route index element={<NewsletterList />} />
+                  <Route path='create' element={<CreateNewsletter />} />
                 </Route>
 
                 {/* Obsługa błędów 404 wewnątrz panelu */}

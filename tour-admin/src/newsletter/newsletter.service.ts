@@ -8,6 +8,7 @@ import { SubscribeNewsletterDto } from './dto/subscribe-newsletter.dto';
 import { ConfirmedNewsletterDto } from './dto/confirm.newsletter.dto';
 import { SubscribeStatus, Newsletter } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { GetNewsletterQueryDto } from './dto/get-newsletter.dto';
 
 @Injectable()
 export class NewsletterService {
@@ -89,5 +90,43 @@ export class NewsletterService {
       message:
         'Adres email został pomyślnie zweryfikowany. Witamy w newsletterze!',
     };
+  }
+
+  async remove(id: number): Promise<void> {
+    await this.prisma.newsletter.delete({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async getAll(
+    query: GetNewsletterQueryDto,
+  ): Promise<{ data: Newsletter[]; total: number }> {
+    const skip = query._start ? parseInt(query._start, 10) : undefined;
+    const take =
+      query._start && query._end ? parseInt(query._end, 10) - skip! : undefined;
+
+    const [data, total] = await Promise.all([
+      this.prisma.newsletter.findMany({
+        skip,
+        take,
+        orderBy: query._sort
+          ? { [query._sort]: query._order || 'asc' }
+          : undefined,
+        where: query.search ? { email: { contains: query.search } } : undefined,
+      }),
+      this.prisma.newsletter.count({
+        where: query.search ? { email: { contains: query.search } } : undefined,
+      }),
+    ]);
+
+    return { data, total };
+  }
+
+  async getById(id: number): Promise<Newsletter | null> {
+    return this.prisma.newsletter.findUnique({
+      where: { id },
+    });
   }
 }
